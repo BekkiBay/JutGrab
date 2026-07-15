@@ -39,7 +39,10 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
@@ -401,73 +404,114 @@ public class JutsuPlugin extends Plugin {
 
     // ---------------------------------------------------------------- library
 
+    private static final Pattern SEASON_DIR = Pattern.compile("^season-(\\d+)$");
+    private static final Pattern EP_FILE = Pattern.compile("^episode-(\\d+)\\.mp4$");
+
     @PluginMethod
     public void libraryList(PluginCall call) {
         io.execute(() -> {
             try {
                 DownloadCore core = DownloadCore.get(getContext());
                 File root = core.downloadRoot();
-                JSONObject lib = core.loadLibrary();
-                JSONObject animesMeta = lib.optJSONObject("animes");
-                JSONArray animes = new JSONArray();
-                long totalBytes = 0;
+                JSONObject animesMeta = core.loadLibrary().optJSONObject("animes");
 
+                // slug -> ("sSeE" -> episode json). Merges two sources: private files
+                // on disk (legacy v0.1.0 / API < 29) and episodes saved to the
+                // device's shared storage (MediaStore), tracked in library.json.
+                Map<String, LinkedHashMap<String, JSONObject>> bySlug = new LinkedHashMap<>();
+
+                // 1) private files on disk
                 File[] tops = root.listFiles();
                 if (tops != null) {
                     for (File dir : tops) {
                         if (!dir.isDirectory()) continue;
                         String slug = dir.getName();
-                        JSONObject meta = animesMeta != null ? animesMeta.optJSONObject(slug) : null;
-                        JSONObject epMeta = meta != null ? meta.optJSONObject("episodes") : null;
-                        List<JSONObject> eps = new ArrayList<>();
-                        long bytes = 0;
                         File[] seasonDirs = dir.listFiles();
                         if (seasonDirs == null) continue;
                         for (File sd : seasonDirs) {
                             if (!sd.isDirectory()) continue;
-                            Matcher sm = Pattern.compile("^season-(\\d+)$").matcher(sd.getName());
+                            Matcher sm = SEASON_DIR.matcher(sd.getName());
                             if (!sm.matches()) continue;
                             int season = Integer.parseInt(sm.group(1));
                             File[] files = sd.listFiles();
                             if (files == null) continue;
                             for (File f : files) {
-                                Matcher em = Pattern.compile("^episode-(\\d+)\\.mp4$").matcher(f.getName());
+                                Matcher em = EP_FILE.matcher(f.getName());
                                 if (!em.matches()) continue;
                                 int episode = Integer.parseInt(em.group(1));
-                                JSONObject e2 = epMeta != null ? epMeta.optJSONObject("s" + season + "e" + episode) : null;
+                                JSONObject m = epMeta(animesMeta, slug, season, episode);
                                 JSONObject e = new JSONObject();
                                 e.put("season", season).put("episode", episode)
-                                        .put("title", e2 != null ? e2.optString("title", "Серия " + episode) : "Серия " + episode)
-                                        .put("quality", e2 != null ? e2.optString("quality", "") : "")
+                                        .put("title", m != null ? m.optString("title", "Серия " + episode) : "Серия " + episode)
+                                        .put("quality", m != null ? m.optString("quality", "") : "")
                                         .put("file", slug + "/season-" + season + "/episode-" + episode + ".mp4")
                                         .put("path", f.getAbsolutePath())
                                         .put("bytes", f.length());
-                                eps.add(e);
-                                bytes += f.length();
+                                putEp(bySlug, slug, season, episode, e);
                             }
                         }
-                        if (eps.isEmpty()) continue;
-                        eps.sort((a, b) -> {
-                            int s = a.optInt("season") - b.optInt("season");
-                            return s != 0 ? s : a.optInt("episode") - b.optInt("episode");
-                        });
-                        java.util.Set<Integer> seasons = new java.util.HashSet<>();
-                        JSONArray epArr = new JSONArray();
-                        for (JSONObject e : eps) { seasons.add(e.optInt("season")); epArr.put(e); }
-                        File posterFile = new File(dir, "poster.jpg");
-                        JSONObject a = new JSONObject();
-                        a.put("slug", slug)
-                                .put("title", meta != null ? meta.optString("title", slug) : slug)
-                                .put("url", DownloadCore.BASE + "/" + slug + "/")
-                                .put("poster", posterFile.exists() ? posterFile.getAbsolutePath() : null)
-                                .put("episodes", epArr)
-                                .put("count", eps.size())
-                                .put("bytes", bytes)
-                                .put("seasons", seasons.size());
-                        animes.put(a);
-                        totalBytes += bytes;
                     }
                 }
+
+                // 2) episodes in the device's storage (MediaStore)
+                if (animesMeta != null) {
+                    Iterator<String> slugs = animesMeta.keys();
+                    while (slugs.hasNext()) {
+                        String slug = slugs.next();
+                        JSONObject a = animesMeta.optJSONObject(slug);
+                        JSONObject eps = a != null ? a.optJSONObject("episodes") : null;
+                        if (eps == null) continue;
+                        Iterator<String> keys = eps.keys();
+                        while (keys.hasNext()) {
+                            JSONObject m = eps.optJSONObject(keys.next());
+                            String uri = m != null ? m.optString("uri", "") : "";
+                            if (uri.isEmpty()) continue;              // covered by the disk walk
+                            long bytes = core.mediaSize(uri);
+                            if (bytes < 0) continue;                  // removed from device storage
+                            int season = m.optInt("season"), episode = m.optInt("episode");
+                            JSONObject e = new JSONObject();
+                            e.put("season", season).put("episode", episode)
+                                    .put("title", m.optString("title", "Серия " + episode))
+                                    .put("quality", m.optString("quality", ""))
+                                    .put("file", slug + "/season-" + season + "/episode-" + episode + ".mp4")
+                                    .put("uri", uri)
+                                    .put("path", uri)
+                                    .put("bytes", bytes);
+                            putEp(bySlug, slug, season, episode, e);
+                        }
+                    }
+                }
+
+                // 3) emit merged, sorted animes
+                JSONArray animes = new JSONArray();
+                long totalBytes = 0;
+                for (Map.Entry<String, LinkedHashMap<String, JSONObject>> en : bySlug.entrySet()) {
+                    String slug = en.getKey();
+                    List<JSONObject> eps = new ArrayList<>(en.getValue().values());
+                    if (eps.isEmpty()) continue;
+                    eps.sort((a, b) -> {
+                        int s = a.optInt("season") - b.optInt("season");
+                        return s != 0 ? s : a.optInt("episode") - b.optInt("episode");
+                    });
+                    long bytes = 0;
+                    java.util.Set<Integer> seasons = new java.util.HashSet<>();
+                    JSONArray epArr = new JSONArray();
+                    for (JSONObject e : eps) { seasons.add(e.optInt("season")); bytes += e.optLong("bytes"); epArr.put(e); }
+                    JSONObject meta = animesMeta != null ? animesMeta.optJSONObject(slug) : null;
+                    File posterFile = new File(root, slug + "/poster.jpg");
+                    JSONObject a = new JSONObject();
+                    a.put("slug", slug)
+                            .put("title", meta != null ? meta.optString("title", slug) : slug)
+                            .put("url", DownloadCore.BASE + "/" + slug + "/")
+                            .put("poster", posterFile.exists() ? posterFile.getAbsolutePath() : null)
+                            .put("episodes", epArr)
+                            .put("count", eps.size())
+                            .put("bytes", bytes)
+                            .put("seasons", seasons.size());
+                    animes.put(a);
+                    totalBytes += bytes;
+                }
+
                 JSObject r = new JSObject();
                 r.put("animes", animes);
                 r.put("totalBytes", totalBytes);
@@ -480,12 +524,31 @@ public class JutsuPlugin extends Plugin {
         });
     }
 
+    private static JSONObject epMeta(JSONObject animesMeta, String slug, int season, int episode) {
+        if (animesMeta == null) return null;
+        JSONObject a = animesMeta.optJSONObject(slug);
+        JSONObject eps = a != null ? a.optJSONObject("episodes") : null;
+        return eps != null ? eps.optJSONObject("s" + season + "e" + episode) : null;
+    }
+
+    private static void putEp(Map<String, LinkedHashMap<String, JSONObject>> bySlug,
+                              String slug, int season, int episode, JSONObject e) {
+        LinkedHashMap<String, JSONObject> m = bySlug.get(slug);
+        if (m == null) { m = new LinkedHashMap<>(); bySlug.put(slug, m); }
+        m.putIfAbsent("s" + season + "e" + episode, e);   // a real disk file wins over a stale entry
+    }
+
     @PluginMethod
     public void deleteEpisode(PluginCall call) {
         String rel = call.getString("file");
+        String uri = call.getString("uri");
         if (rel == null) { call.reject("no file"); return; }
         try {
             DownloadCore core = DownloadCore.get(getContext());
+            // device-storage copy (MediaStore) — remove it from the gallery too
+            if (uri != null && !uri.isEmpty()) {
+                try { getContext().getContentResolver().delete(Uri.parse(uri), null, null); } catch (Exception ignored) {}
+            }
             File root = core.downloadRoot();
             File abs = new File(root, rel).getCanonicalFile();
             // path-traversal guard: stay inside the downloads root

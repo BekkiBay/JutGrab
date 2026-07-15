@@ -279,7 +279,7 @@ function renderLibrary() {
         const del = el('button', 'ep-del', '✕');
         del.addEventListener('click', async () => {
           if (!confirm(`Удалить «${e.title}» (${a.title})?`)) return;
-          try { await Jutsu.deleteEpisode({ file: e.file }); } catch {}
+          try { await Jutsu.deleteEpisode({ file: e.file, uri: e.uri }); } catch {}
           toast('Серия удалена', 'err');
           refreshLibrary();
         });

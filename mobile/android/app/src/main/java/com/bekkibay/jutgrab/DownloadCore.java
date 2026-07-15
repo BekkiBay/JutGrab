@@ -1,12 +1,19 @@
 package com.bekkibay.jutgrab;
 
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
+import android.net.Uri;
+import android.os.Build;
+import android.provider.MediaStore;
 import android.webkit.CookieManager;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -51,6 +58,7 @@ public class DownloadCore {
         String slug, animeTitle, title, sub, pageUrl, quality, resLabel;
         int season, episode;
         File dest;
+        String mediaUri;                    // content:// once published to device storage (API 29+)
         volatile String status = "queued"; // queued | active | paused | error
         volatile String intent = null;     // pause | cancel
         volatile long done = 0, total = 0;
@@ -200,7 +208,7 @@ public class DownloadCore {
                 String slug = safeSlug(slugFromUrl(pageUrl));
                 int[] se = seasonEpFrom(pageUrl);
                 File dest = new File(downloadRoot(), slug + "/season-" + se[0] + "/episode-" + se[1] + ".mp4");
-                if (dest.exists() || inQueue.contains(dest.getAbsolutePath())) { skipped++; continue; }
+                if (alreadyHave(slug, se[0], se[1]) || inQueue.contains(dest.getAbsolutePath())) { skipped++; continue; }
                 inQueue.add(dest.getAbsolutePath());
                 Job j = new Job();
                 j.id = seq.getAndIncrement();
@@ -320,7 +328,8 @@ public class DownloadCore {
             JSONObject info = new JSONObject();
             info.put("id", job.id).put("slug", job.slug).put("animeTitle", job.animeTitle)
                     .put("season", job.season).put("episode", job.episode).put("title", job.title)
-                    .put("quality", job.resLabel).put("dest", job.dest.getAbsolutePath())
+                    .put("quality", job.resLabel)
+                    .put("dest", job.mediaUri != null ? job.mediaUri : job.dest.getAbsolutePath())
                     .put("bytes", job.total);
             Listener l = listener;
             if (l != null) l.onDone(info);
@@ -405,9 +414,82 @@ public class DownloadCore {
         } finally {
             con.disconnect();
         }
-        if (!part.renameTo(job.dest)) {
+        // publish the finished file into the device's own storage so it shows up
+        // in the gallery / file manager. Android 10+ (API 29) mandates MediaStore
+        // for shared storage; older devices keep the app-private layout.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            job.mediaUri = publishToMediaStore(job, part);
+            //noinspection ResultOfMethodCallIgnored
+            part.delete();
+        } else if (!part.renameTo(job.dest)) {
             Files.move(part.toPath(), job.dest.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
         }
+    }
+
+    // ---------------------------------------------------------------- device storage
+
+    /**
+     * Copy the finished episode into the public "Movies/JutGrab/<anime>/season-N"
+     * collection so it is visible in the gallery and file managers. Returns the
+     * content:// URI to keep in library.json for playback and dedup.
+     */
+    @androidx.annotation.RequiresApi(Build.VERSION_CODES.Q)
+    private String publishToMediaStore(Job job, File src) throws Exception {
+        ContentResolver resolver = ctx.getContentResolver();
+        String folder = folderName(job.animeTitle != null && !job.animeTitle.isEmpty() ? job.animeTitle : job.slug);
+        ContentValues v = new ContentValues();
+        v.put(MediaStore.Video.Media.DISPLAY_NAME, "episode-" + job.episode + ".mp4");
+        v.put(MediaStore.Video.Media.MIME_TYPE, "video/mp4");
+        v.put(MediaStore.Video.Media.RELATIVE_PATH, "Movies/JutGrab/" + folder + "/season-" + job.season);
+        v.put(MediaStore.Video.Media.IS_PENDING, 1);
+        Uri collection = MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
+        Uri item = resolver.insert(collection, v);
+        if (item == null) throw new Exception("MediaStore insert failed");
+        try (InputStream in = new FileInputStream(src);
+             OutputStream out = resolver.openOutputStream(item)) {
+            if (out == null) throw new Exception("MediaStore stream unavailable");
+            byte[] b = new byte[65536];
+            int n;
+            while ((n = in.read(b)) > 0) out.write(b, 0, n);
+        } catch (Exception e) {
+            //noinspection ResultOfMethodCallIgnored
+            try { resolver.delete(item, null, null); } catch (Exception ignored) {}
+            throw e;
+        }
+        v.clear();
+        v.put(MediaStore.Video.Media.IS_PENDING, 0);
+        resolver.update(item, v, null, null);
+        return item.toString();
+    }
+
+    /** Size of a published episode, or -1 if the user removed it from device storage. */
+    public long mediaSize(String uriStr) {
+        if (uriStr == null || uriStr.isEmpty()) return -1;
+        try (Cursor c = ctx.getContentResolver().query(Uri.parse(uriStr),
+                new String[]{ MediaStore.MediaColumns.SIZE }, null, null, null)) {
+            if (c != null && c.moveToFirst()) return c.getLong(0);
+        } catch (Exception ignored) {}
+        return -1;
+    }
+
+    /** True if this episode is already on the device (private file or device storage). */
+    public boolean alreadyHave(String slug, int season, int episode) {
+        File dest = new File(downloadRoot(), slug + "/season-" + season + "/episode-" + episode + ".mp4");
+        if (dest.exists()) return true;
+        JSONObject animes = loadLibrary().optJSONObject("animes");
+        JSONObject a = animes != null ? animes.optJSONObject(slug) : null;
+        JSONObject eps = a != null ? a.optJSONObject("episodes") : null;
+        JSONObject e = eps != null ? eps.optJSONObject("s" + season + "e" + episode) : null;
+        if (e == null) return false;
+        String uri = e.optString("uri", "");
+        return uri.isEmpty() || mediaSize(uri) >= 0;   // legacy record, or still on device
+    }
+
+    /** Human-friendly, path-safe folder name for device storage. */
+    private static String folderName(String s) {
+        String r = s.replaceAll("[\\\\/:*?\"<>|\\x00-\\x1F]", " ").replaceAll("\\s+", " ").trim();
+        if (r.length() > 60) r = r.substring(0, 60).trim();
+        return r.isEmpty() ? "anime" : r;
     }
 
     // ---------------------------------------------------------------- library.json
@@ -447,12 +529,14 @@ public class DownloadCore {
             JSONObject eps = a.optJSONObject("episodes");
             if (eps == null) { eps = new JSONObject(); a.put("episodes", eps); }
             JSONObject e = new JSONObject();
-            long bytes = job.dest.length();
+            long bytes = job.mediaUri != null ? mediaSize(job.mediaUri) : job.dest.length();
+            if (bytes < 0) bytes = job.total;
             e.put("season", job.season).put("episode", job.episode)
                     .put("title", job.title != null ? job.title : "Серия " + job.episode)
                     .put("quality", job.resLabel)
                     .put("file", job.slug + "/season-" + job.season + "/episode-" + job.episode + ".mp4")
                     .put("bytes", bytes);
+            if (job.mediaUri != null) e.put("uri", job.mediaUri);
             eps.put("s" + job.season + "e" + job.episode, e);
             saveLibrary(lib);
         } catch (Exception ignored) {}
@@ -500,7 +584,7 @@ public class DownloadCore {
                 String st = o.optString("status", "paused");
                 j.status = "queued".equals(st) ? "paused" : st;
                 j.dest = new File(downloadRoot(), j.slug + "/season-" + j.season + "/episode-" + j.episode + ".mp4");
-                if (j.dest.exists()) continue;
+                if (alreadyHave(j.slug, j.season, j.episode)) continue;
                 jobs.add(j);
                 if (j.id > maxId) maxId = j.id;
             }
