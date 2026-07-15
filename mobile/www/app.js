@@ -4,8 +4,15 @@
  * Native side (plugin "Jutsu"): embedded jut.su WebView, FAB, page fetcher,
  * download queue in a foreground service, library scan. */
 
-const Jutsu = Capacitor.registerPlugin('Jutsu');
-const fileSrc = (p) => Capacitor.convertFileSrc(p);
+// no bundler: only native-bridge.js is injected (no registerPlugin from
+// @capacitor/core), so talk to the plugin through the raw bridge primitives
+const Cap = window.Capacitor;
+const Jutsu = new Proxy({}, {
+  get: (_t, method) => method === 'addListener'
+    ? (event, cb) => Cap.addListener('Jutsu', event, cb)
+    : (options) => Cap.nativePromise('Jutsu', method, options),
+});
+const fileSrc = (p) => Cap.convertFileSrc(p);
 const $ = (id) => document.getElementById(id);
 
 const state = {
