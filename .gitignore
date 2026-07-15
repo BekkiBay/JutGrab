@@ -33,3 +33,14 @@ Thumbs.db
 design_handoff_jutsu_downloader/
 handoff_jutsu_extension/
 logo_icon/
+
+# mobile (Capacitor/Android)
+mobile/node_modules/
+mobile/android/.gradle/
+mobile/android/build/
+mobile/android/app/build/
+mobile/android/capacitor-cordova-android-plugins/build/
+mobile/android/keystore/
+mobile/android/keystore.properties
+design_handoff_jutsu_downloader_mobile/
+mobile/*.apk

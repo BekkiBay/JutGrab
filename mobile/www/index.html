@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data: capacitor:; media-src 'self' https: capacitor:; connect-src 'self' https:;" />
+  <title>JutGrab</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div class="jd" id="app">
+
+  <!-- ============================== Browser tab ============================== -->
+  <section class="screen" id="screen-browser">
+    <div class="chrome">
+      <div class="urlpill">
+        <span class="dot" id="login-dot"></span>
+        <span class="host">jut.su</span>
+        <span class="ptitle" id="page-title">Загрузка…</span>
+      </div>
+      <button class="chromebtn" id="btn-episodes" title="Список серий">☰</button>
+      <button class="chromebtn" id="btn-reload" title="Обновить">⟳</button>
+    </div>
+    <!-- native jut.su WebView overlays this area -->
+    <div id="webview-area">
+      <div class="wv-placeholder">
+        <div class="wv-logo">jut<span>.su</span></div>
+        <div class="wv-hint">Загрузка браузера…</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== Library tab ============================== -->
+  <section class="screen hidden" id="screen-library">
+    <header class="head">
+      <h1>Библиотека</h1>
+      <div class="disk-pill" id="disk-pill">
+        <span class="disk-label">Диск</span>
+        <span class="disk-bar"><i id="disk-bar-fill"></i></span>
+        <span class="disk-val" id="disk-val">—</span>
+      </div>
+    </header>
+    <div class="scroll" id="library-scroll">
+      <div class="section-label">Скачано</div>
+      <div id="library-list"></div>
+      <div class="empty hidden" id="library-empty">
+        <div class="empty-icon">▦</div>
+        <div class="empty-title">Пока пусто</div>
+        <div class="empty-sub">Скачанные серии появятся здесь</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== Downloads tab ============================== -->
+  <section class="screen hidden" id="screen-downloads">
+    <header class="head">
+      <h1>Загрузки</h1>
+      <div class="head-actions">
+        <button class="linkbtn" id="btn-resume-all">Возобновить все</button>
+        <button class="linkbtn danger" id="btn-cancel-all">Отменить все</button>
+      </div>
+    </header>
+    <div class="scroll" id="downloads-scroll">
+      <div id="downloads-list"></div>
+      <div class="empty hidden" id="downloads-empty">
+        <div class="empty-icon">⬇</div>
+        <div class="empty-title">Нет активных загрузок</div>
+        <div class="empty-sub">Открой серию в браузере и нажми кнопку загрузки</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== Tab bar ============================== -->
+  <nav id="tabbar">
+    <button class="tab active" data-tab="browser">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.9 5.7 3.9 9S14.5 18.4 12 21c-2.5-2.6-3.9-5.7-3.9-9S9.5 5.6 12 3z"/></svg>
+      <span>Браузер</span>
+    </button>
+    <button class="tab" data-tab="library">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 9v11"/></svg>
+      <span>Библиотека</span>
+    </button>
+    <button class="tab" data-tab="downloads">
+      <svg viewBox="0 0 24 24"><path d="M12 4v11m0 0l-5-5m5 5l5-5M4 20h16"/></svg>
+      <span>Загрузки</span>
+      <b class="tab-badge hidden" id="tab-badge"></b>
+    </button>
+  </nav>
+
+  <!-- ============================== Episode picker (push) ============================== -->
+  <section class="push hidden" id="picker">
+    <div class="push-top">
+      <button class="backbtn" id="picker-back">‹</button>
+      <span class="push-title">Список серий</span>
+    </div>
+
+    <div class="scroll" id="picker-scroll">
+      <!-- skeleton -->
+      <div id="picker-skeleton">
+        <div class="pk-head">
+          <div class="shimmer pk-poster"></div>
+          <div class="pk-head-info">
+            <div class="shimmer sh-line" style="width:70%;height:22px"></div>
+            <div class="shimmer sh-line" style="width:45%;height:13px"></div>
+          </div>
+        </div>
+        <div class="shimmer sh-row"></div><div class="shimmer sh-row"></div>
+        <div class="shimmer sh-row"></div><div class="shimmer sh-row"></div>
+        <div class="shimmer sh-row"></div><div class="shimmer sh-row"></div>
+        <div class="shimmer sh-row"></div>
+      </div>
+      <!-- ready -->
+      <div class="hidden" id="picker-content">
+        <div class="pk-head">
+          <div class="pk-poster" id="pk-poster"></div>
+          <div class="pk-head-info">
+            <div class="pk-title" id="pk-title"></div>
+            <div class="pk-sub" id="pk-sub"></div>
+          </div>
+        </div>
+        <div id="pk-seasons"></div>
+        <div style="height:150px"></div>
+      </div>
+      <div class="empty hidden" id="picker-error">
+        <div class="empty-icon">!</div>
+        <div class="empty-title">Не удалось загрузить</div>
+        <div class="empty-sub" id="picker-error-text"></div>
+      </div>
+    </div>
+
+    <div class="bulkbar" id="bulkbar">
+      <div class="bulk-row1">
+        <button class="linkbtn" id="bulk-toggle-all">Выбрать всё</button>
+        <div class="seg" id="bulk-quality">
+          <button data-q="1080" class="active">1080p</button>
+          <button data-q="720">720p</button>
+          <button data-q="480">480p</button>
+          <button data-q="360">360p</button>
+        </div>
+      </div>
+      <button class="bigbtn" id="bulk-download" disabled>⬇ Скачать выбранное (0)</button>
+    </div>
+  </section>
+
+  <!-- ============================== Download sheet ============================== -->
+  <div class="backdrop hidden" id="sheet-backdrop">
+    <div class="sheet" id="sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title" id="sheet-title">Скачать серию</div>
+      <div class="sheet-sub" id="sheet-sub"></div>
+      <div class="qgrid" id="sheet-quality"></div>
+      <div class="qsize" id="sheet-size">—</div>
+      <button class="bigbtn" id="sheet-download">⬇ Скачать</button>
+    </div>
+  </div>
+
+  <!-- ============================== Session-expired modal ============================== -->
+  <div class="backdrop center hidden" id="error-modal">
+    <div class="modal">
+      <div class="modal-icon">✕</div>
+      <div class="modal-title">Сессия истекла</div>
+      <div class="modal-text">Войди в аккаунт jut.su заново, чтобы продолжить загрузку серий.</div>
+      <button class="bigbtn" id="btn-relogin">Обновить вход</button>
+    </div>
+  </div>
+
+  <!-- ============================== Player overlay ============================== -->
+  <div class="player hidden" id="player">
+    <div class="player-top">
+      <button class="backbtn" id="player-close">‹</button>
+      <span class="push-title" id="player-title"></span>
+    </div>
+    <video id="player-video" controls playsinline></video>
+  </div>
+
+  <!-- ============================== Toasts ============================== -->
+  <div id="toasts"></div>
+
+</div>
+<script src="parser.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

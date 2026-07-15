@@ -1,0 +1,19 @@
+{
+  "name": "jutgrab-mobile",
+  "version": "0.1.0",
+  "description": "JutGrab for Android — jut.su browser + anime downloader",
+  "private": true,
+  "author": "BekkiBay",
+  "license": "MIT",
+  "scripts": {
+    "sync": "cap sync android",
+    "apk": "cd android && ./gradlew assembleRelease"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.2.0",
+    "@capacitor/core": "^6.2.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.2.0"
+  }
+}
