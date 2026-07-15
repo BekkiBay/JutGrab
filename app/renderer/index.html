@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://jut.su https://*.jut.su; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://gen.jut.su https://s4.anilist.co; connect-src 'self' https://*.jut.su; frame-src https://jut.su https://*.jut.su; media-src 'self' https://*.jut.su https://gen.jut.su;">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <title>Jutsu Downloader</title>
+</head>
+<body>
+<div class="app" data-theme="dark">
+
+  <!-- titlebar -->
+  <div class="titlebar"><div class="title">Jutsu Downloader</div></div>
+
+  <!-- ===== SCREEN 1: WATCH ===== -->
+  <div class="screen" id="screen-watch">
+    <div class="topbar">
+      <button class="iconbtn" id="btnBack" title="Назад">‹</button>
+      <button class="iconbtn" id="btnFwd" title="Вперёд" disabled>›</button>
+      <button class="iconbtn" id="btnHome" title="Главная jut.su">⌂</button>
+      <div class="urlpill">
+        <span class="dot"></span>
+        <span class="host">jut.su</span>
+        <span class="ttl" id="pageTitle">Загрузка…</span>
+      </div>
+      <div class="premium" id="premium">
+        <span class="glow"></span>
+        <span class="lbl" id="premiumLbl">Проверка входа…</span>
+      </div>
+      <button class="iconbtn" id="btnSettings" title="Сменить тему">⚙</button>
+    </div>
+
+    <webview id="site" src="https://jut.su/" partition="persist:jutsu" allowpopups></webview>
+
+    <div class="fab-wrap">
+      <div id="fabMenu"></div>
+      <button class="fab" id="fab">⬇<span class="fab-badge hidden" id="fabBadge">0</span></button>
+    </div>
+  </div>
+
+  <!-- ===== SCREEN 2: LIBRARY ===== -->
+  <div class="screen hidden" id="screen-library">
+    <div id="libRoot"></div>
+  </div>
+
+  <!-- ===== SCREEN 3: EPISODES ===== -->
+  <div class="screen hidden" id="screen-episodes">
+    <div class="topbar">
+      <button class="iconbtn" id="epBack" title="К просмотру">‹</button>
+      <div class="screen-title" style="font-size:15px;font-weight:700;">Список серий</div>
+      <div class="grow"></div>
+      <button class="btn-chip" id="epToLib">☰ В библиотеку</button>
+    </div>
+    <div class="content" id="epContent"></div>
+    <div id="bulkbar"></div>
+  </div>
+
+  <!-- overlays / toasts -->
+  <div id="overlayHost"></div>
+  <div class="toasts" id="toasts"></div>
+
+</div>
+<script src="app.js"></script>
+</body>
+</html>

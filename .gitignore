@@ -1,0 +1,30 @@
+# ── secrets / credentials — NEVER commit ──────────────────────────
+cookies.txt
+*.cookies
+.env
+.env.*
+
+# ── downloaded content + local user data (copyright + machine paths) ─
+downloads/
+app/downloads/
+library.json
+
+# ── dependencies / build artifacts ────────────────────────────────
+node_modules/
+app/node_modules/
+app/dist/
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# ── logs / runtime ────────────────────────────────────────────────
+*.log
+npm-debug.log*
+
+# ── OS / editor ───────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

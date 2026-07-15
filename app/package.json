@@ -1,0 +1,14 @@
+{
+  "name": "jutsu-downloader",
+  "version": "0.1.0",
+  "description": "Single-site jut.su browser + anime downloader for offline viewing",
+  "main": "main.js",
+  "author": "",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^33.2.1"
+  }
+}

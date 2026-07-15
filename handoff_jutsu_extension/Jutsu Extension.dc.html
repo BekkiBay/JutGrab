@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--c0); font-family: 'Inter', system-ui, sans-serif; -webkit-font-smoothing: antialiased; color: var(--c26); }
+  a { color: var(--c35); text-decoration: none; }
+  a:hover { color: var(--c36); }
+  ::-webkit-scrollbar { width: 9px; height: 9px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--c21); border-radius: 8px; border: 2px solid transparent; background-clip: padding-box; }
+  :root,[data-theme="dark"]{--c0:#08080c;--c2:#0E0E13;--c3:#111114;--c4:#0C0C0F;--c5:#111117;--c6:#101017;--c7:#12121A;--c8:#15151C;--c9:#17171F;--c10:#181820;--c11:#1A1A24;--c12:#1E1E28;--c13:#20202B;--c14:#242430;--c18:#22222E;--c20:#1B1B24;--c21:#2A2A38;--c23:#26263480;--c24:#26263280;--c25:#3A3A4C;--c26:#EDEDF2;--c27:#C9C9D6;--c28:#B7B7C7;--c29:#9A9AB0;--c30:#8A8A9E;--c31:#6B6B80;--c32:#5E5E70;--c34:#7A7A88;--c35:#8B7CF0;--c36:#A99CF7;--c39:#14251A;--c40:#1E3A28;--c41:#2E4A38;--c42:#1C1833;--c43:#1B1633;--c44:#141420;--c45:#2E2751;--c46:#241C42;--c47:#2A1518;--c48:#4A2226;--c49:#2A2110;--c50:#2A2410;--glass:#111117ee;--sh75:rgba(0,0,0,.75);--sh7:rgba(0,0,0,.7);--sh6:rgba(0,0,0,.6);--logo:#fff;}
+  [data-theme="light"]{--c0:#EDEDF2;--c2:#FFFFFF;--c3:#FFFFFF;--c4:#E7E7EE;--c5:#F6F6FA;--c6:#F6F6FA;--c7:#F6F6FA;--c8:#F1F1F6;--c9:#F1F1F6;--c10:#FFFFFF;--c11:#ECECF2;--c12:#ECECF2;--c13:#ECECF2;--c14:#E6E6EE;--c18:#E2E2EA;--c20:#EAEAF0;--c21:#DDDDE6;--c23:#E4E4EC;--c24:#E2E2EA;--c25:#C2C2CE;--c26:#1A1A22;--c27:#3A3A46;--c28:#4A4A56;--c29:#6B6B7A;--c30:#7C7C8A;--c31:#9A9AA8;--c32:#A6A6B2;--c34:#8A8A96;--c35:#5A4AD1;--c36:#6C5CE7;--c39:#E4F7EC;--c40:#CDEED9;--c41:#BDE9CE;--c42:#EBE8FB;--c43:#F0EDFB;--c44:#F7F6FC;--c45:#D8D2F5;--c46:#EBE8FB;--c47:#FBE6E6;--c48:#F2C9C9;--c49:#FBF0D8;--c50:#FBF0D8;--glass:#F6F6FAee;--sh75:rgba(0,0,0,.16);--sh7:rgba(30,30,60,.16);--sh6:rgba(30,30,60,.12);--logo:#1A1A22;}
+  @keyframes jd-shimmer { 0% { background-position: -450px 0; } 100% { background-position: 450px 0; } }
+  @keyframes jd-toast { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  @keyframes jd-menu { from { opacity: 0; transform: translateY(12px) scale(.98); } to { opacity: 1; transform: none; } }
+</style>
+</helmet>
+
+<div data-theme="{{ theme }}" style="min-height:100vh;background:var(--c0);padding:56px 60px 140px;display:flex;flex-direction:column;align-items:center;gap:64px;">
+
+  <!-- header + navigator -->
+  <div style="width:1760px;display:flex;flex-direction:column;gap:18px;">
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;">
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="font-size:13px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--c31);">Расширение браузера · Chrome MV3</div>
+        <div style="display:flex;align-items:center;gap:13px;">
+          <div style="width:44px;height:44px;border-radius:12px;background:#6C5CE7;display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;box-shadow:0 8px 22px rgba(108,92,231,.4);">⬇</div>
+          <div style="font-size:29px;font-weight:800;letter-spacing:-.02em;">Jutsu Downloader</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--c6);border:1px solid var(--c18);border-radius:13px;padding:8px;">
+        <span style="font-size:12px;font-weight:600;color:var(--c31);padding:0 8px;">Демо-состояния</span>
+        <button onClick="{{ demoSuccess }}" style="{{ chipStyle }}">Тост: успех</button>
+        <button onClick="{{ demoFallback }}" style="{{ chipStyle }}">Тост: нет 1080p</button>
+        <button onClick="{{ demoSession }}" style="{{ chipStyle }}">Сессия истекла</button>
+        <span style="width:1px;height:22px;background:var(--c18);margin:0 4px;"></span>
+        <button onClick="{{ toggleTheme }}" style="{{ chipStyle }}">{{ themeLabel }}</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SURFACE 1: ON-PAGE WIDGET ============ -->
+  <div style="width:1760px;display:flex;flex-direction:column;gap:22px;">
+    <div style="display:flex;align-items:baseline;gap:14px;">
+      <div style="font-size:15px;font-weight:800;letter-spacing:-.01em;">Поверхность 1 — Виджет на странице jut.su</div>
+      <div style="font-size:13px;color:var(--c30);">content script · overlay поверх сайта · FAB в правом-нижнем углу</div>
+    </div>
+    <div style="display:flex;gap:28px;flex-wrap:wrap;">
+
+      <!-- ===== VARIANT A: EPISODE PAGE ===== -->
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--c30);"><span style="font-weight:800;color:var(--c27);">A</span> · Страница серии — <span style="font-family:ui-monospace,monospace;color:var(--c34);">jut.su/faairytail/season-1/episode-5.html</span></div>
+        <div style="position:relative;width:854px;height:560px;border-radius:14px;overflow:hidden;background:var(--c3);box-shadow:0 30px 70px -20px var(--sh75),0 0 0 1px var(--c18);">
+          <!-- browser chrome -->
+          <div style="height:40px;flex:none;display:flex;align-items:center;gap:12px;padding:0 14px;background:var(--c5);border-bottom:1px solid var(--c18);">
+            <div style="display:flex;gap:7px;"><span style="width:11px;height:11px;border-radius:50%;background:#FF5F57;"></span><span style="width:11px;height:11px;border-radius:50%;background:#FEBC2E;"></span><span style="width:11px;height:11px;border-radius:50%;background:#28C840;"></span></div>
+            <div style="flex:1;display:flex;align-items:center;gap:9px;height:26px;background:var(--c8);border:1px solid var(--c18);border-radius:8px;padding:0 12px;">
+              <span style="font-size:11px;color:var(--c32);">🔒</span>
+              <span style="font-size:12px;color:var(--c29);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">jut.su/faairytail/season-1/episode-5.html</span>
+            </div>
+            <div style="width:26px;height:26px;border-radius:8px;background:#6C5CE7;display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;">⬇</div>
+          </div>
+          <!-- jut.su page mock -->
+          <div style="position:absolute;top:40px;left:0;right:0;bottom:0;overflow:hidden;background:var(--c3);">
+            <div style="height:42px;display:flex;align-items:center;gap:18px;padding:0 22px;background:var(--c4);border-bottom:1px solid var(--c18);">
+              <span style="font-weight:800;font-size:16px;letter-spacing:-.02em;"><span style="color:var(--logo);">jut</span><span style="color:#E24B6B;">.su</span></span>
+              <span style="font-size:12.5px;color:var(--c34);">Аниме</span><span style="font-size:12.5px;color:var(--c34);">Расписание</span><span style="font-size:12.5px;color:var(--c34);">Топ</span>
+              <span style="margin-left:auto;font-size:12px;color:#34D399;">✔ Премиум</span>
+            </div>
+            <div style="padding:20px 24px;">
+              <div style="font-size:12px;color:var(--c34);margin-bottom:12px;">Хвост Феи → Сезон 1 → Серия 5</div>
+              <div style="position:relative;width:100%;aspect-ratio:16/9;max-height:300px;border-radius:11px;overflow:hidden;background:radial-gradient(120% 120% at 30% 20%,#2a1730,#0b0b10 70%);display:flex;align-items:center;justify-content:center;">
+                <div style="width:62px;height:62px;border-radius:50%;background:rgba(108,92,231,.92);display:flex;align-items:center;justify-content:center;box-shadow:0 12px 36px rgba(108,92,231,.5);">
+                  <span style="border-left:18px solid #fff;border-top:11px solid transparent;border-bottom:11px solid transparent;margin-left:5px;"></span>
+                </div>
+                <div style="position:absolute;left:14px;right:14px;bottom:12px;"><div style="height:3px;border-radius:2px;background:rgba(255,255,255,.2);"><div style="width:28%;height:100%;border-radius:2px;background:#6C5CE7;"></div></div></div>
+              </div>
+              <div style="margin-top:16px;font-size:18px;font-weight:700;letter-spacing:-.01em;">Серия 5 — Идеальная команда</div>
+              <div style="margin-top:6px;font-size:12.5px;color:var(--c30);">Хвост Феи · Сезон 1 · 23:58</div>
+            </div>
+          </div>
+
+          <!-- FAB + PANEL A -->
+          <div style="position:absolute;right:22px;bottom:22px;display:flex;flex-direction:column;align-items:flex-end;gap:14px;z-index:40;">
+            <sc-if value="{{ fabA }}" hint-placeholder-val="{{ true }}">
+            <div style="width:344px;background:var(--c10);border:1px solid var(--c21);border-radius:16px;padding:14px;box-shadow:0 26px 64px -14px var(--sh7);animation:jd-menu .16s ease;">
+              <div style="display:flex;align-items:flex-start;gap:11px;">
+                <div style="width:36px;height:36px;border-radius:10px;background:#6C5CE7;display:flex;align-items:center;justify-content:center;font-size:17px;color:#fff;flex:none;">⬇</div>
+                <div style="flex:1;min-width:0;">
+                  <div style="font-size:15px;font-weight:700;letter-spacing:-.01em;">Скачать эту серию</div>
+                  <div style="font-size:12px;color:var(--c29);margin-top:2px;">Фейри Тейл · Сезон 1 · Серия 5</div>
+                </div>
+              </div>
+              <div style="margin-top:14px;position:relative;">
+                <button onClick="{{ toggleQA }}" style="width:100%;height:40px;border-radius:10px;border:1px solid var(--c21);background:var(--c13);color:var(--c26);font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:space-between;padding:0 14px;">
+                  <span>Качество: <span style="color:var(--c27);">{{ qALabel }}</span></span><span style="color:var(--c30);">▾</span>
+                </button>
+                <sc-if value="{{ qOpenA }}" hint-placeholder-val="{{ false }}">
+                <div style="position:absolute;left:0;right:0;bottom:46px;background:var(--c13);border:1px solid var(--c21);border-radius:11px;padding:5px;box-shadow:0 18px 44px var(--sh6);animation:jd-menu .14s ease;z-index:5;">
+                  <sc-for list="{{ optionsA }}" as="q" hint-placeholder-count="4"><div onClick="{{ q.onSelect }}" style="{{ q.style }}">{{ q.label }}</div></sc-for>
+                </div>
+                </sc-if>
+              </div>
+              <button onClick="{{ downloadEpisode }}" style="margin-top:10px;width:100%;height:46px;border-radius:11px;border:none;background:#6C5CE7;color:#fff;font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 8px 22px rgba(108,92,231,.4);">⬇ Скачать серию</button>
+              <div onClick="{{ downloadSeason }}" style="margin-top:11px;text-align:center;font-size:13px;font-weight:600;color:var(--c35);cursor:pointer;">Скачать весь сезон (25) →</div>
+
+              <div style="margin-top:14px;padding-top:13px;border-top:1px solid var(--c18);">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;">
+                  <span style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--c31);">Активные</span>
+                  <a href="#popup" style="font-size:12px;font-weight:600;">Открыть очередь →</a>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:9px;">
+                  <sc-for list="{{ widgetActive }}" as="d" hint-placeholder-count="2">
+                    <div style="background:var(--c7);border:1px solid var(--c18);border-radius:10px;padding:9px 10px;">
+                      <div style="display:flex;align-items:center;gap:9px;">
+                        <div style="width:26px;height:26px;border-radius:7px;background:{{ d.grad }};flex:none;"></div>
+                        <div style="flex:1;min-width:0;">
+                          <div style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ d.title }}</div>
+                          <div style="font-size:10.5px;color:var(--c30);margin-top:1px;">{{ d.metaLabel }}</div>
+                        </div>
+                        <div style="display:flex;gap:5px;flex:none;">
+                          <button onClick="{{ d.onPause }}" style="width:26px;height:26px;border-radius:7px;border:none;background:var(--c13);color:var(--c27);font-size:10px;cursor:pointer;">{{ d.pauseIcon }}</button>
+                          <button onClick="{{ d.onCancel }}" style="width:26px;height:26px;border-radius:7px;border:none;background:var(--c13);color:#FF5C5C;font-size:11px;cursor:pointer;">✕</button>
+                        </div>
+                      </div>
+                      <div style="margin-top:8px;display:flex;align-items:center;gap:8px;">
+                        <div style="flex:1;height:5px;border-radius:3px;background:var(--c23);overflow:hidden;"><div style="width:{{ d.pctWidth }};height:100%;border-radius:3px;background:{{ d.barColor }};transition:width .5s linear;"></div></div>
+                        <span style="font-size:10.5px;font-weight:700;color:{{ d.stateColor }};flex:none;">{{ d.pctLabel }}</span>
+                        <span style="font-size:10.5px;color:var(--c30);flex:none;">{{ d.speedLabel }}</span>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+            </sc-if>
+            <button onClick="{{ toggleFabA }}" style="position:relative;width:58px;height:58px;border-radius:50%;border:none;background:#6C5CE7;color:#fff;font-size:23px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 12px 30px rgba(108,92,231,.5);align-self:flex-end;">
+              ⬇
+              <sc-if value="{{ hasActive }}" hint-placeholder-val="{{ true }}"><span style="position:absolute;top:-2px;right:-2px;min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:#FF5C5C;border:2px solid var(--c3);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;">{{ activeCount }}</span></sc-if>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== VARIANT B: ANIME PAGE ===== -->
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--c30);"><span style="font-weight:800;color:var(--c27);">B</span> · Страница аниме — <span style="font-family:ui-monospace,monospace;color:var(--c34);">jut.su/faairytail/</span></div>
+        <div style="position:relative;width:854px;height:560px;border-radius:14px;overflow:hidden;background:var(--c3);box-shadow:0 30px 70px -20px var(--sh75),0 0 0 1px var(--c18);">
+          <div style="height:40px;flex:none;display:flex;align-items:center;gap:12px;padding:0 14px;background:var(--c5);border-bottom:1px solid var(--c18);">
+            <div style="display:flex;gap:7px;"><span style="width:11px;height:11px;border-radius:50%;background:#FF5F57;"></span><span style="width:11px;height:11px;border-radius:50%;background:#FEBC2E;"></span><span style="width:11px;height:11px;border-radius:50%;background:#28C840;"></span></div>
+            <div style="flex:1;display:flex;align-items:center;gap:9px;height:26px;background:var(--c8);border:1px solid var(--c18);border-radius:8px;padding:0 12px;">
+              <span style="font-size:11px;color:var(--c32);">🔒</span><span style="font-size:12px;color:var(--c29);">jut.su/faairytail/</span>
+            </div>
+            <div style="width:26px;height:26px;border-radius:8px;background:#6C5CE7;display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;">⬇</div>
+          </div>
+          <div style="position:absolute;top:40px;left:0;right:0;bottom:0;overflow:hidden;background:var(--c3);">
+            <div style="height:42px;display:flex;align-items:center;gap:18px;padding:0 22px;background:var(--c4);border-bottom:1px solid var(--c18);">
+              <span style="font-weight:800;font-size:16px;letter-spacing:-.02em;"><span style="color:var(--logo);">jut</span><span style="color:#E24B6B;">.su</span></span>
+              <span style="font-size:12.5px;color:var(--c34);">Аниме</span><span style="font-size:12.5px;color:var(--c34);">Расписание</span><span style="font-size:12.5px;color:var(--c34);">Топ</span>
+              <span style="margin-left:auto;font-size:12px;color:#34D399;">✔ Премиум</span>
+            </div>
+            <div style="padding:22px 24px;display:flex;gap:20px;">
+              <div style="width:140px;height:200px;flex:none;border-radius:11px;background:linear-gradient(160deg,#E24B6B,#8E2DE2);position:relative;overflow:hidden;box-shadow:0 14px 34px rgba(0,0,0,.4);"><span style="position:absolute;bottom:12px;left:12px;font-size:19px;font-weight:800;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.5);line-height:1.1;">Хвост<br>Феи</span></div>
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:24px;font-weight:800;letter-spacing:-.02em;">Хвост Феи</div>
+                <div style="margin-top:8px;display:flex;gap:7px;flex-wrap:wrap;">
+                  <span style="font-size:11.5px;padding:4px 10px;border-radius:7px;background:var(--c11);color:var(--c29);">Приключения</span>
+                  <span style="font-size:11.5px;padding:4px 10px;border-radius:7px;background:var(--c11);color:var(--c29);">Фэнтези</span>
+                  <span style="font-size:11.5px;padding:4px 10px;border-radius:7px;background:var(--c11);color:var(--c29);">2009</span>
+                </div>
+                <p style="margin:14px 0 0;font-size:13px;line-height:1.6;color:var(--c29);">Гильдия «Хвост Феи» берётся за опасные задания и раскрывает тайны древней магии. Приключенческое фэнтези с масштабными битвами.</p>
+                <div style="margin-top:16px;font-size:13px;font-weight:700;color:var(--c27);">Сезонов: 4 · Серий: 353</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- FAB + PANEL B -->
+          <div style="position:absolute;right:22px;bottom:22px;display:flex;flex-direction:column;align-items:flex-end;gap:14px;z-index:40;">
+            <sc-if value="{{ fabB }}" hint-placeholder-val="{{ true }}">
+            <div style="width:344px;background:var(--c10);border:1px solid var(--c21);border-radius:16px;padding:14px;box-shadow:0 26px 64px -14px var(--sh7);animation:jd-menu .16s ease;">
+              <div style="display:flex;align-items:flex-start;gap:11px;">
+                <div style="width:36px;height:36px;border-radius:10px;background:#6C5CE7;display:flex;align-items:center;justify-content:center;font-size:17px;color:#fff;flex:none;">⬇</div>
+                <div style="flex:1;min-width:0;"><div style="font-size:15px;font-weight:700;letter-spacing:-.01em;">Скачать пачкой</div><div style="font-size:12px;color:var(--c29);margin-top:2px;">Хвост Феи · 4 сезона</div></div>
+              </div>
+              <button onClick="{{ downloadAll }}" style="margin-top:14px;width:100%;height:50px;border-radius:12px;border:none;background:#6C5CE7;color:#fff;cursor:pointer;box-shadow:0 8px 22px rgba(108,92,231,.4);display:flex;align-items:center;justify-content:center;gap:10px;">
+                <span style="font-size:14px;font-weight:700;">⬇ Скачать всё аниме</span>
+                <span style="font-size:12px;font-weight:700;padding:2px 9px;border-radius:8px;background:rgba(255,255,255,.2);">353 серии</span>
+              </button>
+              <div style="margin-top:14px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--c31);">Скачать сезон</div>
+              <div style="margin-top:9px;display:flex;gap:8px;">
+                <sc-for list="{{ seasonChips }}" as="c" hint-placeholder-count="4"><button onClick="{{ c.onSelect }}" style="{{ c.style }}">{{ c.label }}</button></sc-for>
+              </div>
+              <div style="margin-top:14px;position:relative;">
+                <button onClick="{{ toggleQB }}" style="width:100%;height:40px;border-radius:10px;border:1px solid var(--c21);background:var(--c13);color:var(--c26);font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:space-between;padding:0 14px;">
+                  <span>Качество: <span style="color:var(--c27);">{{ qBLabel }}</span></span><span style="color:var(--c30);">▾</span>
+                </button>
+                <sc-if value="{{ qOpenB }}" hint-placeholder-val="{{ false }}">
+                <div style="position:absolute;left:0;right:0;bottom:46px;background:var(--c13);border:1px solid var(--c21);border-radius:11px;padding:5px;box-shadow:0 18px 44px var(--sh6);animation:jd-menu .14s ease;z-index:5;">
+                  <sc-for list="{{ optionsB }}" as="q" hint-placeholder-count="4"><div onClick="{{ q.onSelect }}" style="{{ q.style }}">{{ q.label }}</div></sc-for>
+                </div>
+                </sc-if>
+              </div>
+              <div onClick="{{ toggleSkip }}" style="margin-top:11px;display:flex;align-items:center;gap:11px;cursor:pointer;padding:2px 0;">
+                <div style="{{ skipTrack }}"><div style="{{ skipKnob }}"></div></div>
+                <div style="flex:1;"><div style="font-size:13px;font-weight:600;">Пропустить уже скачанные</div></div>
+              </div>
+              <div style="margin-top:11px;padding-top:12px;border-top:1px solid var(--c18);display:flex;align-items:center;gap:8px;font-size:12px;color:var(--c30);">
+                <span style="color:#F5A623;font-weight:700;">В очереди: 8</span><span>·</span><span style="color:#34D399;font-weight:700;">Готово: 40</span>
+                <a href="#popup" style="margin-left:auto;font-size:12px;font-weight:600;">Открыть очередь →</a>
+              </div>
+            </div>
+            </sc-if>
+            <button onClick="{{ toggleFabB }}" style="position:relative;width:58px;height:58px;border-radius:50%;border:none;background:#6C5CE7;color:#fff;font-size:23px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 12px 30px rgba(108,92,231,.5);align-self:flex-end;">
+              ⬇
+              <sc-if value="{{ hasActive }}" hint-placeholder-val="{{ true }}"><span style="position:absolute;top:-2px;right:-2px;min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:#FF5C5C;border:2px solid var(--c3);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;">{{ activeCount }}</span></sc-if>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SURFACE 2: TOOLBAR POPUP ============ -->
+  <div id="popup" style="width:1760px;display:flex;flex-direction:column;gap:22px;">
+    <div style="display:flex;align-items:baseline;gap:14px;">
+      <div style="font-size:15px;font-weight:800;letter-spacing:-.01em;">Поверхность 2 — Попап в тулбаре браузера</div>
+      <div style="font-size:13px;color:var(--c30);">360 × 480 · очередь загрузок и быстрый доступ</div>
+    </div>
+    <div style="display:flex;gap:44px;flex-wrap:wrap;align-items:flex-start;">
+
+      <!-- MAIN popup -->
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="font-size:12px;color:var(--c30);">Основное состояние</div>
+        <div style="width:360px;height:480px;border-radius:16px;overflow:hidden;background:var(--c2);box-shadow:0 26px 64px -18px var(--sh75),0 0 0 1px var(--c18);display:flex;flex-direction:column;">
+          <div style="height:52px;flex:none;display:flex;align-items:center;gap:10px;padding:0 16px;background:var(--c6);border-bottom:1px solid var(--c18);">
+            <div style="width:28px;height:28px;border-radius:8px;background:#6C5CE7;display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff;">⬇</div>
+            <div style="font-size:14px;font-weight:800;letter-spacing:-.01em;">Jutsu Downloader</div>
+            <a href="#options" style="margin-left:auto;width:32px;height:32px;border-radius:9px;background:var(--c11);display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--c28);">⚙</a>
+          </div>
+          <div style="flex:1;overflow-y:auto;min-height:0;padding:14px 16px 16px;">
+            <div style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--c31);margin-bottom:8px;">Качество по умолчанию</div>
+            <div style="display:flex;gap:0;background:var(--c8);border:1px solid var(--c18);border-radius:10px;padding:3px;">
+              <sc-for list="{{ popupSeg }}" as="q" hint-placeholder-count="4"><button onClick="{{ q.onSelect }}" style="{{ q.style }}">{{ q.label }}</button></sc-for>
+            </div>
+
+            <div style="display:flex;align-items:center;margin:18px 0 10px;">
+              <span style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--c31);">Активные загрузки</span>
+              <span style="margin-left:8px;font-size:11px;font-weight:700;color:var(--c35);background:var(--c42);padding:1px 8px;border-radius:7px;">{{ activeCount }}</span>
+              <div style="margin-left:auto;display:flex;gap:6px;">
+                <button onClick="{{ pauseAll }}" style="height:26px;padding:0 9px;border-radius:8px;border:1px solid var(--c18);background:var(--c8);color:var(--c28);font-size:11px;font-weight:600;cursor:pointer;">Пауза всех</button>
+                <button onClick="{{ cancelAll }}" style="height:26px;padding:0 9px;border-radius:8px;border:1px solid var(--c18);background:var(--c8);color:#FF5C5C;font-size:11px;font-weight:600;cursor:pointer;">Отменить всё</button>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:9px;">
+              <sc-for list="{{ popupActive }}" as="d" hint-placeholder-count="3">
+                <div style="background:var(--c8);border:1px solid var(--c18);border-radius:11px;padding:11px 12px;">
+                  <div style="display:flex;align-items:center;gap:10px;">
+                    <div style="width:38px;height:38px;border-radius:8px;background:{{ d.grad }};flex:none;"></div>
+                    <div style="flex:1;min-width:0;"><div style="font-size:12.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ d.title }}</div><div style="font-size:11px;color:var(--c30);margin-top:1px;">{{ d.subFull }}</div></div>
+                    <div style="display:flex;gap:6px;flex:none;">
+                      <button onClick="{{ d.onPause }}" style="width:28px;height:28px;border-radius:8px;border:none;background:var(--c13);color:var(--c27);font-size:11px;cursor:pointer;">{{ d.pauseIcon }}</button>
+                      <button onClick="{{ d.onCancel }}" style="width:28px;height:28px;border-radius:8px;border:none;background:var(--c13);color:#FF5C5C;font-size:12px;cursor:pointer;">✕</button>
+                    </div>
+                  </div>
+                  <div style="margin-top:9px;height:6px;border-radius:3px;background:var(--c23);overflow:hidden;"><div style="width:{{ d.pctWidth }};height:100%;border-radius:3px;background:{{ d.barColor }};transition:width .5s linear;"></div></div>
+                  <div style="margin-top:6px;display:flex;justify-content:space-between;font-size:11px;"><span style="color:var(--c30);">{{ d.sizeLabel }} · {{ d.speedLabel }}</span><span style="font-weight:700;color:{{ d.stateColor }};">{{ d.pctLabel }}</span></div>
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="margin:18px 0 10px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--c31);">Недавно скачано</div>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              <sc-for list="{{ recent }}" as="r" hint-placeholder-count="2">
+                <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;" style-hover="background:var(--c8);">
+                  <span style="width:22px;height:22px;border-radius:7px;background:var(--c39);color:#34D399;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex:none;">✓</span>
+                  <div style="flex:1;min-width:0;"><div style="font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ r.title }}</div><div style="font-size:11px;color:var(--c30);">{{ r.sub }}</div></div>
+                  <button onClick="{{ demoFolder }}" style="height:26px;padding:0 10px;border-radius:8px;border:1px solid var(--c18);background:transparent;color:var(--c28);font-size:11px;font-weight:600;cursor:pointer;flex:none;">Открыть папку</button>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EMPTY + OFFSITE popups -->
+      <div style="display:flex;gap:44px;flex-wrap:wrap;">
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div style="font-size:12px;color:var(--c30);">Пусто</div>
+          <div style="width:360px;height:480px;border-radius:16px;overflow:hidden;background:var(--c2);box-shadow:0 26px 64px -18px var(--sh75),0 0 0 1px var(--c18);display:flex;flex-direction:column;">
+            <div style="height:52px;flex:none;display:flex;align-items:center;gap:10px;padding:0 16px;background:var(--c6);border-bottom:1px solid var(--c18);">
+              <div style="width:28px;height:28px;border-radius:8px;background:#6C5CE7;display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff;">⬇</div>
+              <div style="font-size:14px;font-weight:800;letter-spacing:-.01em;">Jutsu Downloader</div>
+              <a href="#options" style="margin-left:auto;width:32px;height:32px;border-radius:9px;background:var(--c11);display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--c28);">⚙</a>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px;padding:0 40px;">
+              <div style="width:72px;height:72px;border-radius:20px;background:var(--c8);border:1px solid var(--c18);display:flex;align-items:center;justify-content:center;font-size:30px;">⬇</div>
+              <div style="font-size:16px;font-weight:700;">Пока пусто</div>
+              <div style="font-size:13px;color:var(--c29);line-height:1.5;">Открой серию на jut.su и нажми <span style="color:var(--c27);font-weight:700;">⬇</span>, чтобы поставить в очередь.</div>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div style="font-size:12px;color:var(--c30);">Вы не на jut.su</div>
+          <div style="width:360px;height:480px;border-radius:16px;overflow:hidden;background:var(--c2);box-shadow:0 26px 64px -18px var(--sh75),0 0 0 1px var(--c18);display:flex;flex-direction:column;">
+            <div style="height:52px;flex:none;display:flex;align-items:center;gap:10px;padding:0 16px;background:var(--c6);border-bottom:1px solid var(--c18);">
+              <div style="width:28px;height:28px;border-radius:8px;background:#6C5CE7;display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff;">⬇</div>
+              <div style="font-size:14px;font-weight:800;letter-spacing:-.01em;">Jutsu Downloader</div>
+              <a href="#options" style="margin-left:auto;width:32px;height:32px;border-radius:9px;background:var(--c11);display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--c28);">⚙</a>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px;padding:0 40px;">
+              <div style="width:72px;height:72px;border-radius:20px;background:var(--c8);border:1px solid var(--c18);display:flex;align-items:center;justify-content:center;font-size:30px;">🌐</div>
+              <div style="font-size:16px;font-weight:700;">Откройте jut.su</div>
+              <div style="font-size:13px;color:var(--c29);line-height:1.5;">Расширение работает на страницах jut.su. Перейдите на сайт, чтобы качать серии.</div>
+              <a href="#" style="margin-top:2px;height:40px;padding:0 20px;border-radius:10px;background:#6C5CE7;color:#fff;font-weight:700;font-size:13px;display:flex;align-items:center;">Перейти на jut.su</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SURFACE 3: OPTIONS ============ -->
+  <div id="options" style="width:1760px;display:flex;flex-direction:column;gap:22px;">
+    <div style="display:flex;align-items:baseline;gap:14px;">
+      <div style="font-size:15px;font-weight:800;letter-spacing:-.01em;">Поверхность 3 — Страница настроек</div>
+      <div style="font-size:13px;color:var(--c30);">options · отдельная вкладка</div>
+    </div>
+    <div style="width:100%;border-radius:16px;overflow:hidden;background:var(--c3);box-shadow:0 26px 64px -20px var(--sh75),0 0 0 1px var(--c18);">
+      <div style="height:44px;display:flex;align-items:center;gap:12px;padding:0 16px;background:var(--c5);border-bottom:1px solid var(--c18);">
+        <div style="display:flex;gap:7px;"><span style="width:11px;height:11px;border-radius:50%;background:#FF5F57;"></span><span style="width:11px;height:11px;border-radius:50%;background:#FEBC2E;"></span><span style="width:11px;height:11px;border-radius:50%;background:#28C840;"></span></div>
+        <div style="flex:1;display:flex;align-items:center;gap:9px;height:26px;background:var(--c8);border:1px solid var(--c18);border-radius:8px;padding:0 12px;max-width:420px;"><span style="font-size:11px;color:var(--c29);">chrome-extension://jutsu-downloader/options.html</span></div>
+      </div>
+      <div style="display:flex;justify-content:center;padding:40px 24px 56px;">
+        <div style="width:720px;display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+            <div style="width:38px;height:38px;border-radius:11px;background:#6C5CE7;display:flex;align-items:center;justify-content:center;font-size:19px;color:#fff;">⬇</div>
+            <div><div style="font-size:20px;font-weight:800;letter-spacing:-.02em;">Настройки</div><div style="font-size:12.5px;color:var(--c30);">Jutsu Downloader · v1.0</div></div>
+          </div>
+
+          <!-- default quality -->
+          <div style="{{ optRow }}">
+            <div style="flex:1;"><div style="font-size:14px;font-weight:700;">Качество по умолчанию</div><div style="font-size:12.5px;color:var(--c29);margin-top:3px;">Используется для новых загрузок, если не выбрано другое.</div></div>
+            <div style="display:flex;background:var(--c8);border:1px solid var(--c18);border-radius:10px;padding:3px;flex:none;">
+              <sc-for list="{{ optQualitySeg }}" as="q" hint-placeholder-count="4"><button onClick="{{ q.onSelect }}" style="{{ q.style }}">{{ q.label }}</button></sc-for>
+            </div>
+          </div>
+
+          <!-- filename template -->
+          <div style="background:var(--c8);border:1px solid var(--c18);border-radius:13px;padding:18px 18px 16px;">
+            <div style="font-size:14px;font-weight:700;">Шаблон имени файла</div>
+            <div style="font-size:12.5px;color:var(--c29);margin-top:3px;">Доступно: <span style="font-family:ui-monospace,monospace;color:var(--c27);">{anime} {s} {e}</span></div>
+            <input value="{{ tplValue }}" onInput="{{ onTplInput }}" style="margin-top:12px;width:100%;height:42px;border-radius:10px;border:1px solid var(--c21);background:var(--c2);color:var(--c26);font-size:13px;font-family:ui-monospace,monospace;padding:0 14px;outline:none;" />
+            <div style="margin-top:12px;display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:10px;background:var(--c2);border:1px solid var(--c18);">
+              <span style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--c31);flex:none;">Превью</span>
+              <span style="font-size:12.5px;font-family:ui-monospace,monospace;color:#34D399;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ tplPreview }}</span>
+            </div>
+          </div>
+
+          <!-- subfolder -->
+          <div style="{{ optRow }}">
+            <div style="flex:1;"><div style="font-size:14px;font-weight:700;">Подпапка загрузок</div><div style="font-size:12.5px;color:var(--c29);margin-top:3px;">Внутри стандартной папки «Загрузки» браузера.</div></div>
+            <div style="display:flex;align-items:center;gap:8px;flex:none;">
+              <span style="font-size:12.5px;color:var(--c30);">…/Downloads/</span>
+              <input value="{{ subValue }}" onInput="{{ onSubInput }}" style="width:150px;height:38px;border-radius:9px;border:1px solid var(--c21);background:var(--c2);color:var(--c26);font-size:13px;padding:0 12px;outline:none;font-family:inherit;" />
+            </div>
+          </div>
+
+          <!-- concurrency -->
+          <div style="{{ optRow }}">
+            <div style="flex:1;"><div style="font-size:14px;font-weight:700;">Одновременных загрузок</div><div style="font-size:12.5px;color:var(--c29);margin-top:3px;">Сколько серий качать параллельно (1–5).</div></div>
+            <div style="display:flex;align-items:center;gap:12px;flex:none;">
+              <button onClick="{{ concMinus }}" style="width:34px;height:34px;border-radius:9px;border:1px solid var(--c18);background:var(--c8);color:var(--c27);font-size:18px;cursor:pointer;">−</button>
+              <span style="min-width:24px;text-align:center;font-size:16px;font-weight:800;">{{ concValue }}</span>
+              <button onClick="{{ concPlus }}" style="width:34px;height:34px;border-radius:9px;border:1px solid var(--c18);background:var(--c8);color:var(--c27);font-size:18px;cursor:pointer;">+</button>
+            </div>
+          </div>
+
+          <!-- skip toggle -->
+          <div onClick="{{ toggleOptSkip }}" style="{{ optRowClick }}">
+            <div style="flex:1;"><div style="font-size:14px;font-weight:700;">Пропускать уже скачанные</div><div style="font-size:12.5px;color:var(--c29);margin-top:3px;">Не ставить в очередь серии, которые уже есть на диске.</div></div>
+            <div style="{{ optSkipTrack }}"><div style="{{ optSkipKnob }}"></div></div>
+          </div>
+
+          <!-- theme -->
+          <div style="{{ optRow }}">
+            <div style="flex:1;"><div style="font-size:14px;font-weight:700;">Тема</div><div style="font-size:12.5px;color:var(--c29);margin-top:3px;">Оформление попапа и настроек.</div></div>
+            <div style="display:flex;background:var(--c8);border:1px solid var(--c18);border-radius:10px;padding:3px;flex:none;">
+              <sc-for list="{{ optThemeSeg }}" as="t" hint-placeholder-count="3"><button onClick="{{ t.onSelect }}" style="{{ t.style }}">{{ t.label }}</button></sc-for>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ KEY STATES ============ -->
+  <div style="width:1760px;display:flex;flex-direction:column;gap:22px;">
+    <div style="font-size:15px;font-weight:800;letter-spacing:-.01em;">Ключевые состояния</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;">
+
+      <!-- session plate -->
+      <div style="background:var(--c2);border:1px solid var(--c18);border-radius:14px;overflow:hidden;">
+        <div style="padding:12px 16px;border-bottom:1px solid var(--c18);font-size:12px;font-weight:700;color:var(--c30);">Плашка — сессия истекла / не залогинен</div>
+        <div style="padding:22px 18px;">
+          <div style="display:flex;align-items:center;gap:13px;padding:14px 16px;border-radius:12px;background:var(--c47);border:1px solid var(--c48);">
+            <span style="width:36px;height:36px;border-radius:10px;background:rgba(255,92,92,.16);display:flex;align-items:center;justify-content:center;font-size:18px;flex:none;">⚠</span>
+            <div style="flex:1;"><div style="font-size:13.5px;font-weight:700;color:var(--c26);">Сессия истекла</div><div style="font-size:12px;color:var(--c29);margin-top:2px;">Куки авторизации недействительны.</div></div>
+            <a href="#" style="height:34px;padding:0 14px;border-radius:9px;background:#6C5CE7;color:#fff;font-size:12.5px;font-weight:700;display:flex;align-items:center;flex:none;">Войдите на jut.su</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- toasts -->
+      <div style="background:var(--c2);border:1px solid var(--c18);border-radius:14px;overflow:hidden;">
+        <div style="padding:12px 16px;border-bottom:1px solid var(--c18);font-size:12px;font-weight:700;color:var(--c30);">Тосты</div>
+        <div style="padding:22px 18px;display:flex;flex-direction:column;gap:11px;align-items:center;">
+          <div style="width:100%;display:flex;align-items:center;gap:11px;background:var(--c13);border:1px solid var(--c41);border-radius:11px;padding:12px 15px;">
+            <span style="width:24px;height:24px;border-radius:7px;background:var(--c40);color:#34D399;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;">✓</span>
+            <span style="font-size:13px;font-weight:600;">Добавлено в очередь: Серия 5</span>
+          </div>
+          <div style="width:100%;display:flex;align-items:center;gap:11px;background:var(--c13);border:1px solid var(--c45);border-radius:11px;padding:12px 15px;">
+            <span style="width:24px;height:24px;border-radius:7px;background:var(--c46);color:var(--c35);display:flex;align-items:center;justify-content:center;font-size:12px;">⬇</span>
+            <span style="font-size:13px;font-weight:600;">Загрузка завершена: Серия 4</span>
+          </div>
+          <div style="width:100%;display:flex;align-items:center;gap:11px;background:var(--c13);border:1px solid var(--c48);border-radius:11px;padding:12px 15px;">
+            <span style="width:24px;height:24px;border-radius:7px;background:var(--c47);color:#FF5C5C;display:flex;align-items:center;justify-content:center;font-size:12px;">✕</span>
+            <span style="font-size:13px;font-weight:600;">Загрузка отменена</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- quality fallback -->
+      <div style="background:var(--c2);border:1px solid var(--c18);border-radius:14px;overflow:hidden;">
+        <div style="padding:12px 16px;border-bottom:1px solid var(--c18);font-size:12px;font-weight:700;color:var(--c30);">Качество недоступно → авто-понижение</div>
+        <div style="padding:22px 18px;display:flex;flex-direction:column;gap:11px;">
+          <div style="display:flex;align-items:center;gap:11px;background:var(--c13);border:1px solid var(--c50);border-radius:11px;padding:12px 15px;">
+            <span style="width:24px;height:24px;border-radius:7px;background:var(--c49);color:#F5A623;display:flex;align-items:center;justify-content:center;font-size:12px;">ⓘ</span>
+            <span style="font-size:13px;font-weight:600;">Нет 1080p, качаю 720p</span>
+          </div>
+          <div style="font-size:12px;color:var(--c29);line-height:1.5;padding:0 2px;">Если выбранного качества нет в источнике, расширение автоматически берёт ближайшее доступное и сообщает об этом.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ STYLE GUIDE ============ -->
+  <div style="width:1760px;display:flex;flex-direction:column;gap:22px;">
+    <div style="font-size:15px;font-weight:800;letter-spacing:-.01em;">Мини style-guide</div>
+    <div style="background:var(--c2);border:1px solid var(--c18);border-radius:16px;padding:32px;display:flex;flex-direction:column;gap:34px;">
+
+      <div>
+        <div style="font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--c31);margin-bottom:14px;">Цвета</div>
+        <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:12px;">
+          <div><div style="height:60px;border-radius:11px;background:#6C5CE7;box-shadow:0 6px 18px rgba(108,92,231,.4);"></div><div style="font-size:12px;font-weight:700;margin-top:8px;">Accent</div><div style="font-size:11px;color:var(--c30);">#6C5CE7</div></div>
+          <div><div style="height:60px;border-radius:11px;background:#34D399;"></div><div style="font-size:12px;font-weight:700;margin-top:8px;">Скачано</div><div style="font-size:11px;color:var(--c30);">#34D399</div></div>
+          <div><div style="height:60px;border-radius:11px;background:#F5A623;"></div><div style="font-size:12px;font-weight:700;margin-top:8px;">В очереди</div><div style="font-size:11px;color:var(--c30);">#F5A623</div></div>
+          <div><div style="height:60px;border-radius:11px;background:#FF5C5C;"></div><div style="font-size:12px;font-weight:700;margin-top:8px;">Ошибка</div><div style="font-size:11px;color:var(--c30);">#FF5C5C</div></div>
+          <div><div style="height:60px;border-radius:11px;background:var(--c8);border:1px solid var(--c18);"></div><div style="font-size:12px;font-weight:700;margin-top:8px;">Карточка</div><div style="font-size:11px;color:var(--c30);">#15151C</div></div>
+          <div><div style="height:60px;border-radius:11px;background:var(--c10);border:1px solid var(--c18);"></div><div style="font-size:12px;font-weight:700;margin-top:8px;">Поповер</div><div style="font-size:11px;color:var(--c30);">#181820</div></div>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--c31);margin-bottom:14px;">Типографика — Inter</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;align-items:baseline;gap:16px;"><span style="width:130px;font-size:11px;color:var(--c31);flex:none;">Display / 28 / 800</span><span style="font-size:28px;font-weight:800;letter-spacing:-.02em;">Скачать эту серию</span></div>
+          <div style="display:flex;align-items:baseline;gap:16px;"><span style="width:130px;font-size:11px;color:var(--c31);flex:none;">Body / 14 / 600</span><span style="font-size:14px;font-weight:600;">Фейри Тейл · Сезон 1 · Серия 5</span></div>
+          <div style="display:flex;align-items:baseline;gap:16px;"><span style="width:130px;font-size:11px;color:var(--c31);flex:none;">Caption / 12 / 500</span><span style="font-size:12px;font-weight:500;color:var(--c29);">120 / 380 МБ · 22 МБ/с</span></div>
+          <div style="display:flex;align-items:baseline;gap:16px;"><span style="width:130px;font-size:11px;color:var(--c31);flex:none;">Eyebrow / 11 / 700</span><span style="font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--c30);">Активные загрузки</span></div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:30px;">
+        <div>
+          <div style="font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--c31);margin-bottom:14px;">Кнопки и глифы</div>
+          <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
+            <button style="height:42px;padding:0 20px;border-radius:11px;border:none;background:#6C5CE7;color:#fff;font-weight:700;font-size:13.5px;cursor:pointer;box-shadow:0 8px 22px rgba(108,92,231,.4);">⬇ Скачать</button>
+            <button style="height:42px;padding:0 20px;border-radius:11px;border:1px solid var(--c21);background:var(--c13);color:var(--c27);font-weight:600;font-size:13.5px;cursor:pointer;">Вторичная</button>
+            <div style="display:flex;gap:8px;">
+              <span style="width:40px;height:40px;border-radius:10px;background:var(--c11);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--c28);">⚙</span>
+              <span style="width:40px;height:40px;border-radius:10px;background:var(--c13);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--c27);">❚❚</span>
+              <span style="width:40px;height:40px;border-radius:10px;background:var(--c13);display:flex;align-items:center;justify-content:center;font-size:14px;color:#FF5C5C;">✕</span>
+            </div>
+          </div>
+          <div style="font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--c31);margin:24px 0 14px;">FAB · Тумблер · Сегмент</div>
+          <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;">
+            <div style="position:relative;width:58px;height:58px;"><div style="width:58px;height:58px;border-radius:50%;background:#6C5CE7;display:flex;align-items:center;justify-content:center;font-size:23px;color:#fff;box-shadow:0 12px 30px rgba(108,92,231,.5);">⬇</div><span style="position:absolute;top:-2px;right:-2px;min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:#FF5C5C;border:2px solid var(--c2);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;">3</span></div>
+            <div style="width:46px;height:26px;border-radius:13px;background:#6C5CE7;position:relative;"><div style="position:absolute;top:3px;left:23px;width:20px;height:20px;border-radius:50%;background:#fff;"></div></div>
+            <div style="display:flex;background:var(--c8);border:1px solid var(--c18);border-radius:10px;padding:3px;">
+              <span style="height:30px;padding:0 13px;border-radius:8px;background:#6C5CE7;color:#fff;font-size:12.5px;font-weight:700;display:flex;align-items:center;">1080</span>
+              <span style="height:30px;padding:0 13px;border-radius:8px;color:var(--c29);font-size:12.5px;font-weight:600;display:flex;align-items:center;">720</span>
+              <span style="height:30px;padding:0 13px;border-radius:8px;color:var(--c29);font-size:12.5px;font-weight:600;display:flex;align-items:center;">480</span>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--c31);margin-bottom:14px;">Прогресс и статусы</div>
+          <div style="display:flex;flex-direction:column;gap:14px;">
+            <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px;"><span style="font-weight:600;">Серия 5 · 1080p</span><span style="color:var(--c35);font-weight:700;">32%</span></div><div style="height:6px;border-radius:3px;background:var(--c23);"><div style="width:32%;height:100%;border-radius:3px;background:#6C5CE7;"></div></div></div>
+            <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px;"><span style="font-weight:600;color:var(--c29);">На паузе</span><span style="color:var(--c30);font-weight:700;">28%</span></div><div style="height:6px;border-radius:3px;background:var(--c23);"><div style="width:28%;height:100%;border-radius:3px;background:var(--c32);"></div></div></div>
+          </div>
+          <div style="font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--c31);margin:24px 0 14px;">Бейджи статусов</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;">
+            <span style="font-size:12px;font-weight:700;color:#34D399;background:var(--c39);padding:5px 12px;border-radius:8px;">✓ Скачано</span>
+            <span style="font-size:12px;font-weight:700;color:#F5A623;background:var(--c49);padding:5px 12px;border-radius:8px;">В очереди</span>
+            <span style="font-size:12px;font-weight:700;color:#FF5C5C;background:var(--c47);padding:5px 12px;border-radius:8px;">Ошибка</span>
+            <span style="font-size:12px;font-weight:700;color:var(--c29);background:var(--c13);padding:5px 12px;border-radius:8px;">Не скачано</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOASTS live -->
+  <div style="position:fixed;left:0;right:0;bottom:26px;display:flex;flex-direction:column;align-items:center;gap:10px;z-index:200;pointer-events:none;">
+    <sc-for list="{{ toasts }}" as="t" hint-placeholder-count="0">
+      <div style="display:flex;align-items:center;gap:11px;background:var(--c13);border:1px solid {{ t.border }};border-radius:12px;padding:13px 18px;box-shadow:0 16px 40px rgba(0,0,0,.5);animation:jd-toast .25s ease;">
+        <span style="width:24px;height:24px;border-radius:7px;background:{{ t.iconBg }};color:{{ t.iconColor }};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex:none;">{{ t.icon }}</span>
+        <span style="font-size:13.5px;font-weight:600;color:var(--c26);">{{ t.text }}</span>
+      </div>
+    </sc-for>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;dark&quot;,&quot;tsType&quot;:&quot;'dark'|'light'&quot;,&quot;section&quot;:&quot;Оформление&quot;},&quot;defaultQuality&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;1080p&quot;,&quot;720p&quot;,&quot;480p&quot;,&quot;360p&quot;],&quot;default&quot;:&quot;1080p&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Загрузки&quot;},&quot;showActiveDownloads&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Загрузки&quot;}}">
+const GRADS = {
+  ft:'linear-gradient(160deg,#E24B6B,#8E2DE2)',
+  jjk:'linear-gradient(160deg,#654ea3,#1a1a2e)',
+  aot:'linear-gradient(160deg,#B24592,#3A1C71)',
+  ds:'linear-gradient(160deg,#0f9b8e,#134E5E)',
+};
+
+class Component extends DCLogic {
+  state = {
+    themeMode: null,
+    fabA: true, fabB: true,
+    qOpenA: false, qA: null,
+    qOpenB: false, qB: '1080p',
+    seasons: {}, skip: true,
+    popupQ: null,
+    optQ: null, optTpl: '{anime}/Сезон {s}/{anime} S{s}E{e}.mp4', optSub: 'Jutsu', optConc: 3, optSkip: true, optTheme: 'system',
+    downloads: [
+      { id:'d1', animeId:'ft',  title:'Хвост Феи',        sub:'S1·E5',  quality:'1080p', done:120, total:380, speed:22, paused:false, active:true },
+      { id:'d2', animeId:'jjk', title:'Магическая битва', sub:'S2·E18', quality:'720p',  done:210, total:540, speed:14, paused:false, active:true },
+      { id:'d3', animeId:'aot', title:'Атака титанов',    sub:'S4·E12', quality:'1080p', done:90,  total:610, speed:0,  paused:true,  active:true },
+    ],
+    recent: [
+      { id:'r1', title:'Хвост Феи', sub:'S1·E4 · 1080p · 372 МБ' },
+      { id:'r2', title:'Клинок демонов', sub:'S1·E9 · 720p · 214 МБ' },
+    ],
+    toasts: [], _tid: 0,
+  };
+
+  componentDidMount() {
+    this._t = setInterval(() => {
+      this.setState(s => {
+        let changed = false; const finished = [];
+        const downloads = s.downloads.map(d => {
+          if (!d.active || d.paused || d.done >= d.total) return d;
+          changed = true;
+          let done = d.done + d.speed * 0.5;
+          if (done >= d.total) { finished.push(d); return { ...d, done:d.total, active:false }; }
+          return { ...d, done };
+        });
+        if (!changed) return null;
+        if (finished.length) {
+          const rec = finished.map(f => ({ id:'rec'+f.id, title:f.title, sub:f.sub+' · '+f.quality }));
+          setTimeout(() => {
+            finished.forEach(f => this.pushToast('⬇','var(--c46)','var(--c35)','var(--c45)','Загрузка завершена: '+f.title+' '+f.sub));
+            this.setState(st => ({ recent:[...rec, ...st.recent] }));
+          }, 0);
+        }
+        return { downloads };
+      });
+    }, 700);
+  }
+  componentWillUnmount() { clearInterval(this._t); }
+
+  pushToast(icon, iconBg, iconColor, border, text) {
+    const id = 'tt'+(this.state._tid+1);
+    this.setState(s => ({ _tid:s._tid+1, toasts:[...s.toasts, { id, icon, iconBg, iconColor, border, text }] }));
+    setTimeout(() => this.setState(s => ({ toasts:s.toasts.filter(t => t.id!==id) })), 3400);
+  }
+
+  qOpts(current, apply) {
+    return ['1080p','720p','480p','360p'].map(q => ({
+      label: q==='1080p' ? '1080p · Full HD' : q,
+      onSelect: apply(q),
+      style: 'padding:9px 12px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;color:'+(q===current?'#fff':'var(--c27)')+';background:'+(q===current?'#6C5CE7':'transparent')+';',
+    }));
+  }
+  seg(list, current, apply, flex) {
+    return list.map(q => ({
+      label: q, onSelect: apply(q),
+      style: 'flex:'+(flex?'1':'none')+';height:30px;padding:0 13px;border-radius:8px;border:none;font-size:12.5px;font-weight:'+(q===current?'700':'600')+';cursor:pointer;font-family:inherit;color:'+(q===current?'#fff':'var(--c29)')+';background:'+(q===current?'#6C5CE7':'transparent')+';',
+    }));
+  }
+
+  fmtLabel(d) {
+    const pct = Math.round(d.done/d.total*100);
+    return {
+      ...d, grad:GRADS[d.animeId], pctWidth:pct+'%',
+      pauseIcon: d.paused ? '▶' : '❚❚',
+      pctLabel: d.paused ? 'Пауза' : pct+'%',
+      speedLabel: d.paused ? '—' : d.speed.toFixed(0)+' МБ/с',
+      sizeLabel: d.done.toFixed(0)+' / '+d.total+' МБ',
+      metaLabel: d.sub+' · '+d.quality,
+      subFull: d.sub+' · '+d.quality,
+      stateColor: d.paused ? 'var(--c30)' : 'var(--c35)',
+      barColor: d.paused ? 'var(--c32)' : '#6C5CE7',
+      onPause: () => this.setState(st => ({ downloads:st.downloads.map(x => x.id===d.id?{...x,paused:!x.paused}:x) })),
+      onCancel: () => { this.setState(st => ({ downloads:st.downloads.map(x => x.id===d.id?{...x,active:false}:x) })); this.pushToast('✕','var(--c47)','#FF5C5C','var(--c48)','Загрузка отменена: '+d.title); },
+    };
+  }
+
+  renderVals() {
+    const s = this.state;
+    const mode = s.themeMode ?? this.props.theme ?? 'dark';
+    const theme = mode==='light' ? 'light' : 'dark';
+
+    const showActive = this.props.showActiveDownloads ?? true;
+    const active = showActive ? s.downloads.filter(d => d.active) : [];
+    const activeVM = active.map(d => this.fmtLabel(d));
+
+    const qA = s.qA ?? '1080p';
+    const popupQ = s.popupQ ?? this.props.defaultQuality ?? '1080p';
+    const optQ = s.optQ ?? this.props.defaultQuality ?? '1080p';
+
+    const chip = 'height:30px;padding:0 13px;border-radius:9px;border:1px solid var(--c18);background:var(--c10);color:var(--c28);font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;';
+
+    const seasonChips = [1,2,3,4].map(n => {
+      const on = !!s.seasons[n];
+      return {
+        label:'Сезон '+n,
+        onSelect: () => this.setState(st => ({ seasons:{...st.seasons, [n]:!st.seasons[n]} })),
+        style:'flex:1;height:34px;border-radius:9px;border:1px solid '+(on?'#6C5CE7':'var(--c18)')+';background:'+(on?'#6C5CE7':'var(--c13)')+';color:'+(on?'#fff':'var(--c28)')+';font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;',
+      };
+    });
+
+    const tpl = s.optTpl;
+    const preview = tpl.split('{anime}').join('Хвост Феи').split('{s}').join('1').split('{e}').join('05');
+
+    const optRow = 'display:flex;align-items:center;gap:20px;background:var(--c8);border:1px solid var(--c18);border-radius:13px;padding:18px;';
+
+    const toggleTrack = (on) => 'width:46px;height:26px;border-radius:13px;flex:none;background:'+(on?'#6C5CE7':'var(--c25)')+';position:relative;transition:background .18s;';
+    const toggleKnob = (on) => 'position:absolute;top:3px;left:'+(on?'23px':'3px')+';width:20px;height:20px;border-radius:50%;background:#fff;transition:left .18s;box-shadow:0 2px 5px rgba(0,0,0,.3);';
+
+    return {
+      theme,
+      themeLabel: theme==='dark' ? '☀ Светлая' : '☾ Тёмная',
+      toggleTheme: () => this.setState(st => ({ themeMode:(st.themeMode??(this.props.theme??'dark'))==='light'?'dark':'light', optTheme:(st.themeMode??(this.props.theme??'dark'))==='light'?'dark':'light' })),
+      chipStyle: chip,
+
+      fabA:s.fabA, fabB:s.fabB,
+      toggleFabA:()=>this.setState(st=>({fabA:!st.fabA})),
+      toggleFabB:()=>this.setState(st=>({fabB:!st.fabB})),
+      hasActive: activeVM.length>0, activeCount: activeVM.length,
+
+      qOpenA:s.qOpenA, qALabel: qA==='1080p'?'1080p Full HD':qA,
+      toggleQA:()=>this.setState(st=>({qOpenA:!st.qOpenA})),
+      optionsA: this.qOpts(qA, q=>()=>this.setState({qA:q,qOpenA:false})),
+      downloadEpisode:()=>{ this.setState({fabA:false}); this.pushToast('✓','var(--c40)','#34D399','var(--c41)','Добавлено в очередь: Серия 5 · '+qA); },
+      downloadSeason:()=>{ this.setState({fabA:false}); this.pushToast('✓','var(--c40)','#34D399','var(--c41)','Добавлено в очередь: 25 серий · '+qA); },
+
+      qOpenB:s.qOpenB, qBLabel: s.qB==='1080p'?'1080p Full HD':s.qB,
+      toggleQB:()=>this.setState(st=>({qOpenB:!st.qOpenB})),
+      optionsB: this.qOpts(s.qB, q=>()=>this.setState({qB:q,qOpenB:false})),
+      seasonChips,
+      skipTrack: toggleTrack(s.skip), skipKnob: toggleKnob(s.skip),
+      toggleSkip:()=>this.setState(st=>({skip:!st.skip})),
+      downloadAll:()=>{ this.setState({fabB:false}); this.pushToast('✓','var(--c40)','#34D399','var(--c41)','Добавлено в очередь: 353 серии · '+s.qB); },
+
+      widgetActive: activeVM.slice(0,2),
+      popupActive: activeVM,
+      popupSeg: this.seg(['1080p','720p','480p','360p'], popupQ, q=>()=>this.setState({popupQ:q}), true),
+      pauseAll:()=>{ this.setState(st=>({downloads:st.downloads.map(x=>x.active?{...x,paused:true}:x)})); this.pushToast('❚❚','var(--c13)','var(--c27)','var(--c21)','Все загрузки на паузе'); },
+      cancelAll:()=>{ this.setState(st=>({downloads:st.downloads.map(x=>({...x,active:false}))})); this.pushToast('✕','var(--c47)','#FF5C5C','var(--c48)','Все загрузки отменены'); },
+      recent:s.recent,
+      demoFolder:()=>this.pushToast('📁','var(--c13)','var(--c27)','var(--c21)','Открываю папку загрузок…'),
+
+      optQualitySeg: this.seg(['1080p','720p','480p','360p'], optQ, q=>()=>this.setState({optQ:q}), false),
+      tplValue:s.optTpl, tplPreview:preview,
+      onTplInput:(e)=>this.setState({optTpl:e.target.value}),
+      subValue:s.optSub, onSubInput:(e)=>this.setState({optSub:e.target.value}),
+      concValue:s.optConc,
+      concMinus:()=>this.setState(st=>({optConc:Math.max(1,st.optConc-1)})),
+      concPlus:()=>this.setState(st=>({optConc:Math.min(5,st.optConc+1)})),
+      optSkipTrack: toggleTrack(s.optSkip), optSkipKnob: toggleKnob(s.optSkip),
+      toggleOptSkip:()=>this.setState(st=>({optSkip:!st.optSkip})),
+      optRow, optRowClick: optRow+'cursor:pointer;',
+      optThemeSeg: [['Тёмная','dark'],['Светлая','light'],['Системная','system']].map(([label,val])=>({
+        label, onSelect: ()=>this.setState({optTheme:val, themeMode:val}),
+        style:'height:30px;padding:0 14px;border-radius:8px;border:none;font-size:12.5px;font-weight:'+(s.optTheme===val?'700':'600')+';cursor:pointer;font-family:inherit;color:'+(s.optTheme===val?'#fff':'var(--c29)')+';background:'+(s.optTheme===val?'#6C5CE7':'transparent')+';',
+      })),
+
+      demoSuccess:()=>this.pushToast('✓','var(--c40)','#34D399','var(--c41)','Добавлено в очередь: Серия 5 · 1080p'),
+      demoFallback:()=>this.pushToast('ⓘ','var(--c49)','#F5A623','var(--c50)','Нет 1080p, качаю 720p'),
+      demoSession:()=>this.pushToast('⚠','var(--c47)','#FF5C5C','var(--c48)','Сессия истекла — войдите на jut.su'),
+
+      toasts:s.toasts,
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+# Python dependencies for the CLI downloader (jutsu_dl.py)
+# The desktop app (app/) uses Node/Electron — see app/package.json
+requests>=2.31
+browser_cookie3>=0.19

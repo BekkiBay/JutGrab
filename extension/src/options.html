@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="stylesheet" href="options.css">
+  <title>Настройки — Jutsu Downloader</title>
+</head>
+<body>
+  <div class="page">
+    <div class="title">Настройки</div>
+    <div class="subtitle">Jutsu Downloader — расширение браузера</div>
+
+    <div class="field">
+      <div class="label"><div class="h">Качество по умолчанию</div><div class="d">Какое качество качать по умолчанию.</div></div>
+      <div class="control"><div class="seg" id="qseg"></div></div>
+    </div>
+
+    <div class="field">
+      <div class="label"><div class="h">Шаблон имени файла</div><div class="d">Плейсхолдеры: <code>{anime}</code> <code>{s}</code> <code>{e}</code> <code>{season}</code> <code>{episode}</code></div></div>
+      <div class="control"><input class="input" id="template"><div class="preview" id="preview"></div></div>
+    </div>
+
+    <div class="field">
+      <div class="label"><div class="h">Подпапка загрузок</div><div class="d">Внутри папки «Загрузки» браузера.</div></div>
+      <div class="control"><input class="input" id="subfolder" style="max-width:300px"></div>
+    </div>
+
+    <div class="field">
+      <div class="label"><div class="h">Одновременных загрузок</div><div class="d">Сколько серий качать параллельно (1–5).</div></div>
+      <div class="control"><div class="stepper"><button id="cMinus">−</button><span id="cVal">3</span><button id="cPlus">+</button></div></div>
+    </div>
+
+    <div class="field">
+      <div class="label"><div class="h">Пропускать уже скачанные</div><div class="d">Не качать серии, которые уже есть.</div></div>
+      <div class="control"><span class="sw" id="skipSw"><i></i></span></div>
+    </div>
+
+    <div class="field">
+      <div class="label"><div class="h">Тема</div><div class="d">Оформление расширения.</div></div>
+      <div class="control"><div class="seg" id="themeSeg">
+        <button data-t="dark">Тёмная</button><button data-t="light">Светлая</button><button data-t="system">Системная</button>
+      </div></div>
+    </div>
+  </div>
+  <div class="toasts" id="toasts"></div>
+  <script src="options.js"></script>
+</body>
+</html>

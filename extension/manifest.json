@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "Jutsu Downloader",
+  "version": "0.1.0",
+  "description": "Скачивай аниме с jut.su в один клик — серию или весь сезон, в выбранном качестве.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "permissions": ["downloads", "storage", "alarms", "activeTab"],
+  "host_permissions": ["*://jut.su/*", "*://*.jut.su/*"],
+  "action": {
+    "default_popup": "src/popup.html",
+    "default_icon": { "16": "icons/icon16.png", "32": "icons/icon32.png" }
+  },
+  "options_ui": { "page": "src/options.html", "open_in_tab": true },
+  "background": {
+    "service_worker": "src/background.js",
+    "scripts": ["src/parser.js", "src/background.js"]
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://jut.su/*"],
+      "js": ["src/parser.js", "src/content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "browser_specific_settings": {
+    "gecko": { "id": "jutsu-downloader@jutsu.local", "strict_min_version": "121.0" }
+  }
+}
