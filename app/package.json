@@ -1,14 +1,50 @@
 {
-  "name": "jutsu-downloader",
+  "name": "jutgrab",
   "version": "0.1.0",
   "description": "Single-site jut.su browser + anime downloader for offline viewing",
   "main": "main.js",
-  "author": "",
+  "author": "BekkiBay",
   "license": "MIT",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "dist:mac": "electron-builder --mac",
+    "dist:win": "electron-builder --win",
+    "dist": "electron-builder --mac --win"
   },
   "devDependencies": {
-    "electron": "^33.2.1"
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.bekkibay.jutgrab",
+    "productName": "JutGrab",
+    "icon": "build/icon.png",
+    "files": [
+      "main.js",
+      "preload.js",
+      "downloader.js",
+      "renderer/**"
+    ],
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["arm64", "x64"]
+        }
+      ],
+      "category": "public.app-category.entertainment"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
   }
 }

@@ -28,3 +28,8 @@ Thumbs.db
 .idea/
 .vscode/
 *.swp
+
+# design-tool handoff artifacts (local only)
+design_handoff_jutsu_downloader/
+handoff_jutsu_extension/
+logo_icon/
