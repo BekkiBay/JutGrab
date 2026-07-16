@@ -168,13 +168,19 @@ class DownloadManager extends EventEmitter {
     super();
     this.getCookieHeader = deps.getCookieHeader;
     this.resolve = deps.resolve;
-    this.concurrency = deps.concurrency || 3;
+    // Sequential, one episode at a time. jut.su throttles bulk grabbing per
+    // account (many parallel/rapid fetches trip its anti-scrape limiter), so we
+    // download strictly one-by-one with a polite gap between episodes.
+    this.concurrency = 1;
+    this.gapMs = 30000;           // pause between finishing one episode and starting the next
+    this._gapTimer = null;
     this.jobs = [];               // all jobs not yet done
     this.active = new Map();      // id -> AbortController
   }
 
-  setConcurrency(n) {
-    this.concurrency = Math.max(1, Math.min(6, (n | 0) || 3));
+  // kept for API compatibility; sequential download is enforced regardless
+  setConcurrency() {
+    this.concurrency = 1;
     this._tick();
   }
 
@@ -256,11 +262,22 @@ class DownloadManager extends EventEmitter {
   }
 
   _tick() {
-    while (this.active.size < this.concurrency) {
-      const next = this.jobs.find((j) => j.status === 'queued' && !this.active.has(j.id));
-      if (!next) break;
-      this._run(next);
-    }
+    if (this._gapTimer) return;       // waiting out the polite gap between episodes
+    if (this.active.size >= 1) return; // strictly one at a time
+    const next = this.jobs.find((j) => j.status === 'queued' && !this.active.has(j.id));
+    if (next) this._run(next);
+  }
+
+  // after an episode settles, wait gapMs before starting the next one so we
+  // don't hammer jut.su and trip its per-account rate limit
+  _scheduleNext() {
+    if (this._gapTimer) return;
+    const hasNext = this.jobs.some((j) => j.status === 'queued');
+    if (!hasNext) return;
+    this._gapTimer = setTimeout(() => {
+      this._gapTimer = null;
+      this._tick();
+    }, this.gapMs);
   }
 
   async _run(job) {
@@ -297,7 +314,7 @@ class DownloadManager extends EventEmitter {
     } finally {
       this.active.delete(job.id);
       this._emitQueue();
-      this._tick();
+      this._scheduleNext();
     }
   }
 

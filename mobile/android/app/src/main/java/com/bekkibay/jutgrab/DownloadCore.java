@@ -26,6 +26,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -77,7 +80,17 @@ public class DownloadCore {
     private final Context ctx;
     private final List<Job> jobs = new ArrayList<>();
     private final AtomicInteger seq = new AtomicInteger(1);
-    private final int concurrency = 3;
+    // Sequential, one episode at a time. jut.su throttles bulk grabbing per
+    // account (many parallel/rapid fetches trip its anti-scrape limiter), so we
+    // download strictly one-by-one with a polite gap between episodes.
+    private final int concurrency = 1;
+    private static final long GAP_MS = 30000; // pause between finishing one episode and starting the next
+    private final ScheduledExecutorService gapExec = Executors.newSingleThreadScheduledExecutor(r -> {
+        Thread t = new Thread(r, "dl-gap");
+        t.setDaemon(true);
+        return t;
+    });
+    private volatile boolean gapPending = false;
     private volatile Listener listener;
 
     private DownloadCore(Context ctx) {
@@ -293,6 +306,7 @@ public class DownloadCore {
     }
 
     private synchronized void tick() {
+        if (gapPending) { DownloadService.sync(ctx, activeCount()); return; } // waiting out the polite gap
         int active = 0;
         for (Job j : jobs) if ("active".equals(j.status)) active++;
         while (active < concurrency) {
@@ -308,6 +322,20 @@ public class DownloadCore {
             active++;
         }
         DownloadService.sync(ctx, activeCount());
+    }
+
+    // after an episode settles, wait GAP_MS before starting the next one so we
+    // don't hammer jut.su and trip its per-account rate limit. Queued jobs keep
+    // activeCount() > 0 so the foreground service stays alive across the gap.
+    private void scheduleNextTick() {
+        boolean hasNext = false;
+        synchronized (this) {
+            for (Job j : jobs) if ("queued".equals(j.status)) { hasNext = true; break; }
+        }
+        if (!hasNext) { tick(); return; }
+        gapPending = true;
+        DownloadService.sync(ctx, activeCount());
+        gapExec.schedule(() -> { gapPending = false; tick(); }, GAP_MS, TimeUnit.MILLISECONDS);
     }
 
     // ---------------------------------------------------------------- worker
@@ -358,7 +386,7 @@ public class DownloadCore {
         } finally {
             job.worker = null;
             emitQueue();
-            tick();
+            scheduleNextTick();
         }
     }
 
