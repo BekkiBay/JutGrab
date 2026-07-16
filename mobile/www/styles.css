@@ -141,8 +141,11 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .dl-name { font-size: 14px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .dl-sub { font-size: 11.5px; color: var(--c30); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .dl-actions { display: flex; gap: 8px; flex: none; }
-.dl-btn { width: 32px; height: 32px; border-radius: 50%; background: var(--c12); color: var(--c28); font-size: 12px; display: flex; align-items: center; justify-content: center; }
+.dl-btn { width: 34px; height: 34px; border: none; border-radius: 50%; background: var(--c12); color: var(--c28); display: flex; align-items: center; justify-content: center; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: transform .12s ease, background .15s ease; }
+.dl-btn:not(.cancel) { color: var(--accent); }
 .dl-btn.cancel { color: var(--c38); }
+.dl-btn:active { transform: scale(.88); background: var(--c14); }
+.dl-btn svg, .ep-del svg, .ep-play svg { display: block; pointer-events: none; }
 .dl-bar { height: 4px; border-radius: 2px; background: var(--c14); margin-top: 10px; overflow: hidden; }
 .dl-bar i { display: block; height: 100%; width: 0; background: var(--accent); border-radius: 2px; transition: width .3s linear; }
 .dl-bar.paused i { background: var(--c25); }

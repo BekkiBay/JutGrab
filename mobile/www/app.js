@@ -46,6 +46,13 @@ function el(tag, cls, text) {
   return e;
 }
 
+// crisp vector glyphs — replaces color-emoji (⏸/▶/✕) that rendered ugly on Android
+const ICON = {
+  pause: '<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><rect x="6.5" y="5" width="3.6" height="14" rx="1.4"/><rect x="13.9" y="5" width="3.6" height="14" rx="1.4"/></svg>',
+  play: '<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M8 5.6v12.8a1 1 0 0 0 1.52.86l10.2-6.4a1 1 0 0 0 0-1.72L9.52 4.74A1 1 0 0 0 8 5.6z"/></svg>',
+  close: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+};
+
 function overlayOpen() {
   return !$('picker').classList.contains('hidden')
     || !$('sheet-backdrop').classList.contains('hidden')
@@ -120,6 +127,21 @@ Jutsu.addListener('fabTap', () => {
   else toast('Открой страницу серии или аниме на jut.su');
 });
 
+// Hardware/gesture back, forwarded by the native plugin when the in-app UI is
+// showing (an overlay is open or we're off the browser tab). Close the topmost
+// overlay, else fall back to the browser tab, so back navigates instead of
+// exiting the app. The browser tab at its root still exits (handled natively).
+Jutsu.addListener('backPressed', () => {
+  if (!$('player').classList.contains('hidden')) return closePlayer(false);
+  if (!$('sheet-backdrop').classList.contains('hidden')) return closeSheet(false);
+  if (!$('picker').classList.contains('hidden')) return closePicker(false);
+  if (!$('error-modal').classList.contains('hidden')) {
+    $('error-modal').classList.add('hidden');
+    return;
+  }
+  if (state.tab !== 'browser') switchTab('browser');
+});
+
 // ---------------------------------------------------------------- download queue events
 
 Jutsu.addListener('dlQueue', (d) => { state.jobs = d.jobs || []; onQueueChanged(); });
@@ -166,12 +188,14 @@ function renderDownloads() {
     top.appendChild(info);
 
     const actions = el('div', 'dl-actions');
-    const pb = el('button', 'dl-btn', j.status === 'active' || j.status === 'queued' ? '⏸' : '▶');
+    const pb = el('button', 'dl-btn');
+    pb.innerHTML = (j.status === 'active' || j.status === 'queued') ? ICON.pause : ICON.play;
     pb.addEventListener('click', () => {
       if (j.status === 'active' || j.status === 'queued') Jutsu.dlPause({ id: j.id });
       else Jutsu.dlResume({ id: j.id });
     });
-    const cb = el('button', 'dl-btn cancel', '✕');
+    const cb = el('button', 'dl-btn cancel');
+    cb.innerHTML = ICON.close;
     cb.addEventListener('click', () => Jutsu.dlCancel({ id: j.id }));
     actions.appendChild(pb); actions.appendChild(cb);
     top.appendChild(actions);
@@ -274,9 +298,10 @@ function renderLibrary() {
         row.appendChild(info);
         if (e.quality) row.appendChild(el('span', 'ep-q', e.quality));
         const play = el('button', 'ep-play', '▶');
-        play.addEventListener('click', () => openPlayer(a, e));
+        play.addEventListener('click', () => watchEpisode(a, e));
         row.appendChild(play);
-        const del = el('button', 'ep-del', '✕');
+        const del = el('button', 'ep-del');
+        del.innerHTML = ICON.close;
         del.addEventListener('click', async () => {
           if (!confirm(`Удалить «${e.title}» (${a.title})?`)) return;
           try { await Jutsu.deleteEpisode({ file: e.file, uri: e.uri }); } catch {}
@@ -293,6 +318,19 @@ function renderLibrary() {
 }
 
 // ---------------------------------------------------------------- player
+
+// Open a saved episode in the device's external video player of choice.
+// Falls back to the in-app player if no external player handles it.
+async function watchEpisode(anime, ep) {
+  const raw = ep.path || '';
+  const uri = ep.uri || (raw.startsWith('content://') ? raw : '');
+  const file = ep.file || (raw && !raw.startsWith('content://') && !raw.startsWith('http') ? raw : '');
+  try {
+    await Jutsu.openExternal({ uri, file });
+  } catch (err) {
+    openPlayer(anime, ep);
+  }
+}
 
 function openPlayer(anime, ep) {
   state.playing = { slug: anime.slug, season: ep.season, episode: ep.episode };

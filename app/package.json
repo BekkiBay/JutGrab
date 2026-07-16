@@ -1,6 +1,6 @@
 {
   "name": "jutgrab",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Single-site jut.su browser + anime downloader for offline viewing",
   "main": "main.js",
   "author": "BekkiBay",

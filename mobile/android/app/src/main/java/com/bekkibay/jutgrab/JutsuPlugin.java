@@ -92,15 +92,25 @@ public class JutsuPlugin extends Plugin {
         try { notifyListeners(name, JSObject.fromJSONObject(data)); } catch (Exception ignored) {}
     }
 
-    /** Hardware back: let the embedded browser consume it while visible. */
+    /**
+     * Hardware/gesture back. While the embedded jut.su browser is visible it
+     * consumes back for in-page history (and only lets the app exit at the
+     * browser's root). Otherwise the in-app UI is showing (an overlay is open or
+     * we're off the browser tab), so we forward the event to JS to navigate
+     * back instead of exiting the app.
+     */
     public static boolean handleBack() {
         JutsuPlugin p = instance;
-        if (p == null || p.web == null || !p.browserVisible) return false;
-        if (p.web.canGoBack()) {
-            p.web.goBack();
-            return true;
+        if (p == null) return false;
+        if (p.web != null && p.browserVisible) {
+            if (p.web.canGoBack()) {
+                p.web.goBack();
+                return true;
+            }
+            return false; // browser at its root → allow default (exit app)
         }
-        return false;
+        p.emit("backPressed", new JSObject());
+        return true;
     }
 
     // ---------------------------------------------------------------- browser
@@ -280,6 +290,45 @@ public class JutsuPlugin extends Plugin {
             s.put("title", web == null ? null : web.getTitle());
             s.put("canGoBack", web != null && web.canGoBack());
             call.resolve(s);
+        });
+    }
+
+    /**
+     * Hand a saved episode to the device's external video player via ACTION_VIEW
+     * so the user watches in their chosen app instead of the in-app player.
+     * Prefers the MediaStore content:// uri (v0.1.2+); falls back to a
+     * FileProvider uri for legacy app-private files.
+     */
+    @PluginMethod
+    public void openExternal(PluginCall call) {
+        String uriStr = call.getString("uri");
+        String file = call.getString("file");
+        Uri data;
+        try {
+            if (uriStr != null && !uriStr.isEmpty()) {
+                data = Uri.parse(uriStr);
+            } else if (file != null && !file.isEmpty()) {
+                data = androidx.core.content.FileProvider.getUriForFile(
+                        getContext(), getContext().getPackageName() + ".fileprovider", new File(file));
+            } else {
+                call.reject("no source");
+                return;
+            }
+        } catch (Exception e) {
+            call.reject("bad source", e);
+            return;
+        }
+        final Uri view = data;
+        getActivity().runOnUiThread(() -> {
+            Intent i = new Intent(Intent.ACTION_VIEW);
+            i.setDataAndType(view, "video/*");
+            i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            try {
+                getActivity().startActivity(Intent.createChooser(i, "Открыть в"));
+                call.resolve();
+            } catch (Exception e) {
+                call.reject("no player", e);
+            }
         });
     }
 
